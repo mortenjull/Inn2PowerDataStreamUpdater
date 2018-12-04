@@ -17,6 +17,13 @@ namespace Inn2PowerDataStreamUpdater.BLL
             this._succesResult = new ResultObject();          
         }
 
+        /// <summary>
+        /// Goes trough companies from stream and compares them with API companies.
+        /// Splits stream companies into existing companies and new companies.
+        /// </summary>
+        /// <param name="dataStreamCompanies">Companies from stream.</param>
+        /// <param name="apiCompanies">Companies from out API</param>
+        /// <returns></returns>
         public ResultObject PrepareCompanies(
             List<DataStreamCompany> dataStreamCompanies, 
             List<APICompany> apiCompanies)
@@ -67,6 +74,11 @@ namespace Inn2PowerDataStreamUpdater.BLL
             return this._succesResult;
         }
 
+        /// <summary>
+        /// Converts stream companies to API company format.
+        /// </summary>
+        /// <param name="streamCompanies">Commapny from stream</param>
+        /// <returns>Formatet companies</returns>
         private List<APICompany> ConvertStreamCompanies(List<DataStreamCompany> streamCompanies)
         {
             var convertedCompanies = new List<APICompany>();

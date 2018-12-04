@@ -71,7 +71,15 @@ namespace Inn2PowerDataStreamUpdater
                 _bearerToken, 
                 _username, 
                 _password);
-            _menu1.RunMenu1();
+
+            var result =_menu1.RunMenu1();
+            _bearerToken = result.Payload.ToString();
+
+            {
+                Console.Clear();
+                Console.WriteLine("end of the line");
+                Console.ReadLine();
+            }
         }
 
         static void RunInitialMenues()

@@ -64,6 +64,8 @@ namespace Inn2PowerDataStreamUpdater.Services
             }
         }
 
+
+
         //Still to be tested!!!!
         public async Task<ResultObject> UpdateCompanies(string token, List<APICompany> companies)
         {
