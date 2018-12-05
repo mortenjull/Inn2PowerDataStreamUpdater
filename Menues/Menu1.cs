@@ -77,7 +77,8 @@ namespace Inn2PowerDataStreamUpdater.Menues
                         break;
                     case "5":
                         var selectmenuUpdate = new SelectMenu(this._existingCompanies);
-                        var result2 = selectmenuUpdate.RunMenu();                        
+                        var result2 = selectmenuUpdate.RunMenu();
+                        this._existingCompanies = result2.Companies;
                         resultobject = UpdateCompanies((List<APICompany>) result2.SelectedCompanies);
                         break;
                     case "e":
@@ -86,7 +87,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
                     default:
                         break;
                 }
-
+                
                 if (!done)
                 {
                     if (resultobject.IsSuccesFull)
