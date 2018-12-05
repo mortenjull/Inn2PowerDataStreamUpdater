@@ -51,6 +51,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             Console.WriteLine("");
 
             var resultobject = new ResultObject();
+            var selectResult = new SelectMenuResultObject();
             var done = false;
             while (!done)
             {              
@@ -62,17 +63,22 @@ namespace Inn2PowerDataStreamUpdater.Menues
                         resultobject = UpdateAndCreateCompanies();
                         break;
                     case "2":
-                        resultobject = UpdateCompanies(this._existingCompanies);
-                        break;
-                    case "3":
+                        
                         resultobject = CreateCompanies(this._newCompanies);
                         break;
+                    case "3":
+                        resultobject = UpdateCompanies(this._existingCompanies);
+                        break;
                     case "4":
-                        var selectmenu = new SelectMenu(this._newCompanies);
-                        var result = selectmenu.RunMenu();
-                        resultobject = CreateCompanies((List<APICompany>) result.Payload);
+                        var selectmenuCreate = new SelectMenu(this._newCompanies);
+                        var result = selectmenuCreate.RunMenu();
+                        this._newCompanies = result.Companies;
+                        resultobject = CreateCompanies((List<APICompany>) result.SelectedCompanies);
                         break;
                     case "5":
+                        var selectmenuUpdate = new SelectMenu(this._existingCompanies);
+                        var result2 = selectmenuUpdate.RunMenu();                        
+                        resultobject = UpdateCompanies((List<APICompany>) result2.SelectedCompanies);
                         break;
                     case "e":
                         done = true;
@@ -86,11 +92,15 @@ namespace Inn2PowerDataStreamUpdater.Menues
                     if (resultobject.IsSuccesFull)
                     {
                         Console.WriteLine("The chosen operation was a succes.");
+                        Console.WriteLine("Press ENTER to Continiue");
+                        Console.ReadLine();
                     }
                     else
                     {
                         Console.WriteLine(resultobject.ErrorMessage);
                         Console.WriteLine("Please restart applikation.");
+                        Console.WriteLine("Press ENTER to Continiue");
+                        Console.ReadLine();
                     }
                 }               
                 
@@ -225,7 +235,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
                     done = true;
 
                     succesresult.IsSuccesFull = true;
-                    succesresult.Payload = result.Payload;
+                    succesresult.Payload = this._token;
                     return succesresult;
                 }
                 else
@@ -270,6 +280,9 @@ namespace Inn2PowerDataStreamUpdater.Menues
         private void Menu1Dialog()
         {
             Console.Clear();
+            Console.WriteLine($"New Companies: {this._newCompanies.Count}");
+            Console.WriteLine($"ExistingCompanies: {this._existingCompanies.Count}");
+            Console.WriteLine("");
             Console.WriteLine("Select an option by typen its NUMBER.");
             Console.WriteLine("");
             Console.WriteLine("( 1 ): Update Database with NEW and EXISTING companies.");
@@ -278,9 +291,9 @@ namespace Inn2PowerDataStreamUpdater.Menues
             Console.WriteLine("");
             Console.WriteLine("( 3 ): Update Database with EXISTING companies.");
             Console.WriteLine("");
-            Console.WriteLine("( 4 ): Manuel select New companies.");
+            Console.WriteLine("( 4 ): Manuel select CREATE companies.");
             Console.WriteLine("");
-            Console.WriteLine("( 5 ): Manuel select Existing companies.");
+            Console.WriteLine("( 5 ): Manuel select UPDATE companies.");
             Console.WriteLine("");
             Console.WriteLine("( E ): Type E to Exit. Wont execute ANY options to DB.");
             Console.WriteLine("");            

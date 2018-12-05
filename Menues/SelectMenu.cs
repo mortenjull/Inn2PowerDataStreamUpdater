@@ -17,10 +17,14 @@ namespace Inn2PowerDataStreamUpdater.Menues
             this._selectedCompanies = new List<APICompany>();
         }
 
-        public ResultObject RunMenu()
+        /// <summary>
+        /// Runs this menu and funtkions.
+        /// </summary>
+        /// <returns></returns>
+        public SelectMenuResultObject RunMenu()
         {
-            var badresult = new ResultObject();
-            var succesresult = new ResultObject();
+            var badresult = new SelectMenuResultObject();
+            var succesresult = new SelectMenuResultObject();
 
             var done = false;
             var finish = false;
@@ -51,17 +55,25 @@ namespace Inn2PowerDataStreamUpdater.Menues
             if (finish)
             {
                 succesresult.IsSuccesFull = true;
-                succesresult.Payload = _selectedCompanies;
+                succesresult.SelectedCompanies = this._selectedCompanies;
+                succesresult.Companies = this._companies;
                 return succesresult;
             }
             else
             {
                 succesresult.IsSuccesFull = true;
-                succesresult.Payload = new List<APICompany>();
+                succesresult.SelectedCompanies = new List<APICompany>();
+                succesresult.Companies = this._companies;
                 return succesresult;
             }                      
         }
 
+        /// <summary>
+        /// Splits the line input into Chars via ,
+        /// and colelcts them in a list.
+        /// </summary>
+        /// <param name="input">The console input</param>
+        /// <returns>List of inputs</returns>
         private List<int> InputSplitter(string input)
         {
             var cleaninput = input.ToLower().Trim();
@@ -87,7 +99,11 @@ namespace Inn2PowerDataStreamUpdater.Menues
             return indexes;
         }
 
-
+        /// <summary>
+        /// Takes a list of indexes and seletcs the company at that index.
+        /// Then removes the selected company from the _companies list.
+        /// </summary>
+        /// <param name="indexes">selected indexes</param>
         private void SelectCompany(List<int> indexes)
         {
             foreach (var index in indexes)
@@ -112,6 +128,9 @@ namespace Inn2PowerDataStreamUpdater.Menues
             }
         }
 
+        /// <summary>
+        /// Prints the companies in the _selectedCompanies list
+        /// </summary>
         private void PrintSelected()
         {
             var index = 0;
@@ -134,6 +153,9 @@ namespace Inn2PowerDataStreamUpdater.Menues
             Console.ReadLine();
         }
 
+        /// <summary>
+        /// Print the related dialog for this menu.
+        /// </summary>
         private void MenuDialog()
         {
             var index = 0;
@@ -141,7 +163,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             Console.Clear();
             Console.WriteLine("Companies:");            
             foreach (var item in this._companies)
-            {
+            {               
                 Console.WriteLine($"( {index} )  " + item.CompanyName);
                 Console.WriteLine("             Country: " + item.Country);
                 Console.WriteLine("             Address: " + item.Address);
@@ -152,7 +174,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
                 index++;
             }
             Console.WriteLine();
-            Console.WriteLine("Total: " + (index- 1));
+            Console.WriteLine("Total: " + (index) + " Includes 0.");
             Console.WriteLine("Type P to print selected.");
             Console.WriteLine("Type F to FINISH and Save.");
             Console.WriteLine("Type B to go BACK without saving.");

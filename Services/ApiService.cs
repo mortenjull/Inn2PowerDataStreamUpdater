@@ -15,8 +15,8 @@ namespace Inn2PowerDataStreamUpdater.Services
     public class ApiService
     {
         private readonly string _getAllURL = "/company/everything";
-        private readonly string _updateCompanieURL = "/datastream/update";
-        private readonly string _CreateCompanieURL = "/datastream/create";
+        private readonly string _updateCompanieURL = "/datastream/UpdateCompanies";
+        private readonly string _CreateCompanieURL = "/datastream/CreateCompanies";
 
         private readonly string _apiconnectionstring;       
         private readonly HttpClient client;
@@ -90,7 +90,7 @@ namespace Inn2PowerDataStreamUpdater.Services
 
                 var payload = JsonConvert.SerializeObject(companies);
 
-                var response = client.PostAsync(_apiconnectionstring + _updateCompanieURL,
+                var response = client.PutAsync(_apiconnectionstring + _updateCompanieURL,
                     new StringContent(payload, Encoding.UTF8, "application/json")).Result;
 
                 if (!response.IsSuccessStatusCode)
@@ -117,18 +117,26 @@ namespace Inn2PowerDataStreamUpdater.Services
             }           
         }
 
+        /// <summary>
+        /// Sends Http request to Inn2POWER API 
+        /// with a list of new companies to create.
+        /// </summary>
+        /// <param name="token">Bearer token.</param>
+        /// <param name="companies">Companies to be created</param>
+        /// <returns>ResultObject</returns>
         public async Task<ResultObject> CreateCompanies(string token, List<APICompany> companies)
         {
+            var badresultobject = new ResultObject();
+            var succesResult = new ResultObject();
             if (string.IsNullOrWhiteSpace(token))
             {
-                var badresultobject = new ResultObject();
+               
                 badresultobject.IsSuccesFull = false;
                 badresultobject.ErrorMessage = "Token was empty. Please restart applikation.";
                 return badresultobject;
             }
             if (!companies.Any())
-            {
-                var succesResult = new ResultObject();
+            {                
                 succesResult.IsSuccesFull = true;
                 succesResult.Payload = companies;
                 return succesResult;
@@ -143,17 +151,26 @@ namespace Inn2PowerDataStreamUpdater.Services
                 var response = client.PostAsync(_apiconnectionstring + _CreateCompanieURL,
                     new StringContent(payload, Encoding.UTF8, "application/json")).Result;
 
+                if (response.IsSuccessStatusCode)
+                {
+                    succesResult.IsSuccesFull = true;
+                    succesResult.Payload = response;
+                    return succesResult;
+                }
+                else
+                {
+                    badresultobject.IsSuccesFull = false;
+                    badresultobject.ErrorMessage = "Something went wrong and not all comapnies got created.";
+                    return badresultobject;
+                }
 
             }
             catch (Exception e)
-            {
-                var badresultobject = new ResultObject();
+            {                
                 badresultobject.IsSuccesFull = false;
                 badresultobject.ErrorMessage = "Something went wrong.";
                 return badresultobject;
-            }
-
-            return null;
+            }            
         }
     }
 }

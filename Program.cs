@@ -75,6 +75,7 @@ namespace Inn2PowerDataStreamUpdater
             var result =_menu1.RunMenu1();
             _bearerToken = result.Payload.ToString();
 
+            //Signal temination, test code
             {
                 Console.Clear();
                 Console.WriteLine("end of the line");
@@ -156,7 +157,7 @@ namespace Inn2PowerDataStreamUpdater
                     Console.WriteLine($"Wee have recieved {_dataStramCompanies.Count} items from the stream.");                    
                     _gotDataFromDataStream = true;
                     Console.WriteLine("Press Enter to Continue.");
-                    Console.ReadLine();
+                    //Console.ReadLine();
                 }
             }            
         }
@@ -187,7 +188,7 @@ namespace Inn2PowerDataStreamUpdater
                     Console.WriteLine($"Wee have recieved {_apiCompanies.Count} items from the API.");
                     _gotDataFromAPI = true;
                     Console.WriteLine("Press Enter to Continue.");
-                    Console.ReadLine();
+                    //Console.ReadLine();
                 }
             }
         }
@@ -217,7 +218,7 @@ namespace Inn2PowerDataStreamUpdater
                     Console.WriteLine($"There are NewCompanies: {_newCompanies.Count}");
                     Console.WriteLine($"There are ExistingCompanies: {_existingCompanies.Count}");
                     Console.WriteLine("Press Enter to continue.");
-                    Console.ReadLine();
+                   // Console.ReadLine();
                 }
             }
             catch (Exception e)
