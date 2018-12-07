@@ -54,8 +54,9 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     {
                         //Adds if exists in DB.
                         convertedStreamCompany.Id = apiCompany.Id;
-                        existingCompanies.Add(convertedStreamCompany);
+                        existingCompanies.Add(convertedStreamCompany);                                                   
                         added = true;
+                        break;
                     }
                 }
                 if (added == false)

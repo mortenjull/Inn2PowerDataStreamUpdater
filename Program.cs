@@ -33,6 +33,7 @@ namespace Inn2PowerDataStreamUpdater
         private static List<APICompany> _companiesToUpdate;
 
         private const string DATASTREAM_URL = "http://inn2power.eu/mapping/api/feed?key=0lUwFrGpTqfI9oSNISCUF7m5UYzWLtCU";
+        //private const string API_CONNECTIONSTRING = "http://api.mjapps.dk";
         private const string API_CONNECTIONSTRING = "https://localhost:44346";
 
         //While loop toogles----
@@ -157,7 +158,7 @@ namespace Inn2PowerDataStreamUpdater
                     Console.WriteLine($"Wee have recieved {_dataStramCompanies.Count} items from the stream.");                    
                     _gotDataFromDataStream = true;
                     Console.WriteLine("Press Enter to Continue.");
-                    //Console.ReadLine();
+                    Console.ReadLine();
                 }
             }            
         }
@@ -188,7 +189,7 @@ namespace Inn2PowerDataStreamUpdater
                     Console.WriteLine($"Wee have recieved {_apiCompanies.Count} items from the API.");
                     _gotDataFromAPI = true;
                     Console.WriteLine("Press Enter to Continue.");
-                    //Console.ReadLine();
+                    Console.ReadLine();
                 }
             }
         }
@@ -218,7 +219,7 @@ namespace Inn2PowerDataStreamUpdater
                     Console.WriteLine($"There are NewCompanies: {_newCompanies.Count}");
                     Console.WriteLine($"There are ExistingCompanies: {_existingCompanies.Count}");
                     Console.WriteLine("Press Enter to continue.");
-                   // Console.ReadLine();
+                    Console.ReadLine();
                 }
             }
             catch (Exception e)
