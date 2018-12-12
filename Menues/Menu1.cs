@@ -161,7 +161,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             var tries = 0;
             while (!done)
             {
-                if (tries == 2)
+                if (tries == 1)
                 {
                     done = true;
                    
@@ -221,7 +221,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             var tries = 0;
             while (!done)
             {
-                if (tries == 2)
+                if (tries == 1)
                 {
                     done = true;
                 

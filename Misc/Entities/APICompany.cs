@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Inn2PowerDataStreamUpdater.Misc.Entities;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -14,6 +15,8 @@ namespace Inn2PowerDataStreamUpdater.Misc
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
         public bool SME { get; set; }
-        public DateTime Created { get; set; }                      
+        public DateTime Created { get; set; }
+        public List<SupplyChainCategory> SupplyChainCategory { get; set; }
+        public List<SupplyChainRole> SupplyChainRole { get; set; }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using Inn2PowerDataStreamUpdater.Misc;
+using Inn2PowerDataStreamUpdater.Misc.Entities;
 
 namespace Inn2PowerDataStreamUpdater.BLL
 {
@@ -26,9 +28,11 @@ namespace Inn2PowerDataStreamUpdater.BLL
         /// <returns></returns>
         public ResultObject PrepareCompanies(
             List<DataStreamCompany> dataStreamCompanies, 
-            List<APICompany> apiCompanies)
+            List<APICompany> apiCompanies,
+            List<SupplyChainRole> SupplyChainRoles,
+            List<SupplyChainCategory> SuppleChainCategories)
         {          
-            if (!dataStreamCompanies.Any() || ! apiCompanies.Any())
+            if (!dataStreamCompanies.Any() || !apiCompanies.Any() || !SupplyChainRoles.Any() || !SuppleChainCategories.Any())
             {
                 this._badResult.IsSuccesFull = false;
                 this._badResult.ErrorMessage = "One of the lists are empty. Please restart applikation.";
@@ -36,7 +40,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
             }
 
             //Converts stream data to API Company format
-            var convertedStreamCompanies = ConvertStreamCompanies(dataStreamCompanies);
+            var convertedStreamCompanies = ConvertStreamCompanies(dataStreamCompanies, SupplyChainRoles, SuppleChainCategories);
 
             //Preperes to sort throug the stream data.
             var existingCompanies = new List<APICompany>();
@@ -80,17 +84,27 @@ namespace Inn2PowerDataStreamUpdater.BLL
         /// </summary>
         /// <param name="streamCompanies">Commapny from stream</param>
         /// <returns>Formatet companies</returns>
-        private List<APICompany> ConvertStreamCompanies(List<DataStreamCompany> streamCompanies)
+        private List<APICompany> ConvertStreamCompanies(
+            List<DataStreamCompany> streamCompanies, 
+            List<SupplyChainRole> SupplyChainroles,
+            List<SupplyChainCategory> SuppleChainCategories
+            )
         {
             var convertedCompanies = new List<APICompany>();
 
             foreach (var item in streamCompanies)
             {
-                var company = new APICompany();
+                var company = new APICompany();                
+
                 company.CompanyName = item.company_name;
                 company.Country = item.country;
                 company.Website = item.website;                
-                company.SME = item.sme_status;               
+                company.SME = item.sme_status;
+                var roleresult = ConvertSupplyChainRoles(item.supply_chain_roles, SupplyChainroles);
+                var categoryresult = ConvertSupplyChainCategories(item.supply_chain_categories, SuppleChainCategories);
+                company.SupplyChainCategory = categoryresult;
+                company.SupplyChainRole = roleresult;
+
                 if (!item.offices.Any())
                 {
                     company.Address = "";
@@ -111,5 +125,61 @@ namespace Inn2PowerDataStreamUpdater.BLL
 
             return convertedCompanies;
         }
+
+        private List<SupplyChainRole> ConvertSupplyChainRoles(
+            List<string>StreamChainStrings, 
+            List<SupplyChainRole>SupplyChainRoles)
+        {
+            if(StreamChainStrings == null || !StreamChainStrings.Any())
+                return new List<SupplyChainRole>();
+
+            var convertedRoles = new List<SupplyChainRole>();
+
+            foreach (var stringcode in StreamChainStrings)
+            {
+                int code;
+                bool success = Int32.TryParse(stringcode, out code);
+                if (success)
+                {
+                    foreach (var role in SupplyChainRoles)
+                    {
+                        if (role.SupplyChainRoleCode == code)
+                        {
+                            convertedRoles.Add(role);
+                            break;
+                        }                         
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            return convertedRoles;
+        }
+
+        private List<SupplyChainCategory> ConvertSupplyChainCategories(
+            List<string> StreamCategoryStrings, 
+            List<SupplyChainCategory> SupplyChainCategories)
+        {
+            if (StreamCategoryStrings == null || !StreamCategoryStrings.Any())
+                return new List<SupplyChainCategory>();
+            
+            var convertedCategories = new List<SupplyChainCategory>();
+
+            foreach (var stringcode in StreamCategoryStrings)
+            {
+                foreach (var category in SupplyChainCategories)
+                {
+                    if (category.SupplyChainCategoryCode.ToString().Equals(stringcode))
+                    {
+                        convertedCategories.Add(category);
+                        break;
+                    }
+                }
+            }
+            return convertedCategories;
+        }
+       
     }
 }

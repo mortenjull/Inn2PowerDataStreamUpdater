@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Inn2PowerDataStreamUpdater.BLL;
 using Inn2PowerDataStreamUpdater.Menues;
 using Inn2PowerDataStreamUpdater.Misc;
+using Inn2PowerDataStreamUpdater.Misc.Entities;
 using Inn2PowerDataStreamUpdater.Services;
 
 namespace Inn2PowerDataStreamUpdater
@@ -27,12 +28,14 @@ namespace Inn2PowerDataStreamUpdater
 
         private static List<DataStreamCompany> _dataStramCompanies;
         private static List<APICompany> _apiCompanies;
+        private static List<SupplyChainCategory> _supplyChainCategories;
+        private static List<SupplyChainRole> _supplyChainRoles;
 
         private static List<APICompany> _newCompanies;
         private static List<APICompany> _existingCompanies;
         private static List<APICompany> _companiesToUpdate;
 
-        private const string DATASTREAM_URL = "";
+        private const string DATASTREAM_URL = "http://inn2power.eu/mapping/api/feed?key=0lUwFrGpTqfI9oSNISCUF7m5UYzWLtCU";
         //private const string API_CONNECTIONSTRING = "http://api.mjapps.dk";
         private const string API_CONNECTIONSTRING = "https://localhost:44346";
 
@@ -173,10 +176,12 @@ namespace Inn2PowerDataStreamUpdater
                 Console.Clear();
                 Console.WriteLine("Getting Data from Inn2Power API....");
                 var result = _apiService.GetApiCompanies(_bearerToken).Result;
-                if (!result.IsSuccesFull)
+                var result2 = _apiService.GetCompanySupplyChainCategorys(_bearerToken).Result;
+                var result3 = _apiService.GetCompanySupplyChainRoles(_bearerToken).Result;
+                if (!result.IsSuccesFull || !result2.IsSuccesFull || !result3.IsSuccesFull)
                 {
                     Console.Clear();
-                    Console.WriteLine("We were unable to fetch Datastream data due to:");
+                    Console.WriteLine("We were unable to fetch Api data due to:");
                     Console.WriteLine(result.ErrorMessage);
                     Console.WriteLine("Press enter to try again.");
                     Console.ReadLine();
@@ -184,6 +189,8 @@ namespace Inn2PowerDataStreamUpdater
                 else
                 {
                     _apiCompanies = (List<APICompany>)result.Payload;
+                    _supplyChainCategories = (List<SupplyChainCategory>) result2.Payload;
+                    _supplyChainRoles = (List<SupplyChainRole>) result3.Payload;
 
                     Console.Clear();
                     Console.WriteLine($"Wee have recieved {_apiCompanies.Count} items from the API.");
@@ -203,7 +210,7 @@ namespace Inn2PowerDataStreamUpdater
             Console.WriteLine("Prepering data for Work.....");
             try
             {
-                var result = _logic.PrepareCompanies(_dataStramCompanies, _apiCompanies);
+                var result = _logic.PrepareCompanies(_dataStramCompanies, _apiCompanies, _supplyChainRoles, _supplyChainCategories);
                 if (result.IsSuccesFull == false)
                 {
                     Console.Clear();

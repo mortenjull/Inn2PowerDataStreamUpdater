@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Inn2PowerDataStreamUpdater.Misc;
+using Inn2PowerDataStreamUpdater.Misc.Entities;
 using Newtonsoft.Json;
 
 namespace Inn2PowerDataStreamUpdater.Services
@@ -15,6 +16,8 @@ namespace Inn2PowerDataStreamUpdater.Services
     public class ApiService
     {
         private readonly string _getAllURL = "/company/everything";
+        private readonly string _getCompanySupplyChaincategories = "/SupplyChainCategory/GetSupplyChainCategorys";
+        private readonly string _getCompanySupplyChainRoles = "/SupplyChainRole/GetSypplyChainRoles";
         private readonly string _updateCompanieURL = "/datastream/UpdateCompanies";
         private readonly string _CreateCompanieURL = "/datastream/CreateCompanies";
 
@@ -28,6 +31,74 @@ namespace Inn2PowerDataStreamUpdater.Services
             
             this._apiconnectionstring = apiconnectionstring;           
             this.client = new HttpClient();
+        }
+
+        public async Task<ResultObject> GetCompanySupplyChainCategorys(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                var badresultobject = new ResultObject();
+                badresultobject.IsSuccesFull = false;
+                badresultobject.ErrorMessage = "Token was empty. Please restart applikation.";
+                return badresultobject;
+            }
+            try
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+
+                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getCompanySupplyChaincategories)).Result;
+
+                var dataResult = response.Content.ReadAsStringAsync().Result;
+
+                var result = JsonConvert.DeserializeObject<List<SupplyChainCategory>>(dataResult);
+
+                var resultobject = new ResultObject();
+                resultobject.IsSuccesFull = true;
+                resultobject.Payload = result;
+                return resultobject;
+            }
+            catch (Exception e)
+            {
+                var badresultobject = new ResultObject();
+                badresultobject.IsSuccesFull = false;
+                badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                return badresultobject;
+            }
+
+        }
+
+        public async Task<ResultObject> GetCompanySupplyChainRoles(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                var badresultobject = new ResultObject();
+                badresultobject.IsSuccesFull = false;
+                badresultobject.ErrorMessage = "Token was empty. Please restart applikation.";
+                return badresultobject;
+            }
+            try
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+
+                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getCompanySupplyChainRoles)).Result;
+
+                var dataResult = response.Content.ReadAsStringAsync().Result;
+
+                var result = JsonConvert.DeserializeObject<List<SupplyChainRole>>(dataResult);
+
+                var resultobject = new ResultObject();
+                resultobject.IsSuccesFull = true;
+                resultobject.Payload = result;
+                return resultobject;
+            }
+            catch (Exception e)
+            {
+                var badresultobject = new ResultObject();
+                badresultobject.IsSuccesFull = false;
+                badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                return badresultobject;
+            }
+
         }
 
         public async Task<ResultObject> GetApiCompanies(string token)
@@ -64,9 +135,7 @@ namespace Inn2PowerDataStreamUpdater.Services
             }
         }
 
-
-
-        //Still to be tested!!!!
+        
         public async Task<ResultObject> UpdateCompanies(string token, List<APICompany> companies)
         {
             if (string.IsNullOrWhiteSpace(token))
