@@ -16,8 +16,8 @@ namespace Inn2PowerDataStreamUpdater.Services
     public class ApiService
     {
         private readonly string _getAllURL = "/company/everything";
-        private readonly string _getCompanySupplyChaincategories = "/SupplyChainCategory/GetSupplyChainCategorys";
-        private readonly string _getCompanySupplyChainRoles = "/SupplyChainRole/GetSypplyChainRoles";
+        private readonly string _getSupplyChaincategories = "/SupplyChainCategory/GetSupplyChainCategorys";
+        private readonly string _getSupplyChainRoles = "/SupplyChainRole/GetSypplyChainRoles";
         private readonly string _updateCompanieURL = "/datastream/UpdateCompanies";
         private readonly string _CreateCompanieURL = "/datastream/CreateCompanies";
 
@@ -33,7 +33,7 @@ namespace Inn2PowerDataStreamUpdater.Services
             this.client = new HttpClient();
         }
 
-        public async Task<ResultObject> GetCompanySupplyChainCategorys(string token)
+        public async Task<ResultObject> GetSupplyChainCategorys(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -46,7 +46,15 @@ namespace Inn2PowerDataStreamUpdater.Services
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
 
-                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getCompanySupplyChaincategories)).Result;
+                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getSupplyChaincategories)).Result;
+
+                if (response.IsSuccessStatusCode == false)
+                {
+                    var badresultobject = new ResultObject();
+                    badresultobject.IsSuccesFull = false;
+                    badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                    return badresultobject;
+                }
 
                 var dataResult = response.Content.ReadAsStringAsync().Result;
 
@@ -61,13 +69,13 @@ namespace Inn2PowerDataStreamUpdater.Services
             {
                 var badresultobject = new ResultObject();
                 badresultobject.IsSuccesFull = false;
-                badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                badresultobject.ErrorMessage = "Something went wrong getting API SupplyChainCategories.";
                 return badresultobject;
             }
 
         }
 
-        public async Task<ResultObject> GetCompanySupplyChainRoles(string token)
+        public async Task<ResultObject> GetSupplyChainRoles(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -80,7 +88,15 @@ namespace Inn2PowerDataStreamUpdater.Services
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
 
-                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getCompanySupplyChainRoles)).Result;
+                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getSupplyChainRoles)).Result;
+
+                if (response.IsSuccessStatusCode == false)
+                {
+                    var badresultobject = new ResultObject();
+                    badresultobject.IsSuccesFull = false;
+                    badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                    return badresultobject;
+                }
 
                 var dataResult = response.Content.ReadAsStringAsync().Result;
 
@@ -95,7 +111,7 @@ namespace Inn2PowerDataStreamUpdater.Services
             {
                 var badresultobject = new ResultObject();
                 badresultobject.IsSuccesFull = false;
-                badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                badresultobject.ErrorMessage = "Something went wrong getting API SupplyChainRoles.";
                 return badresultobject;
             }
 
@@ -118,6 +134,14 @@ namespace Inn2PowerDataStreamUpdater.Services
                 HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getAllURL)).Result;
 
                 var dataResult = response.Content.ReadAsStringAsync().Result;
+
+                if (response.IsSuccessStatusCode == false)
+                {
+                    var badresultobject = new ResultObject();
+                    badresultobject.IsSuccesFull = false;
+                    badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                    return badresultobject;
+                }
 
                 var result = JsonConvert.DeserializeObject<List<APICompany>>(dataResult);
 
@@ -154,13 +178,18 @@ namespace Inn2PowerDataStreamUpdater.Services
             }
 
             try
-            {
+            {               
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+                //Extends the time before the request is canceled.
+                client.Timeout = new TimeSpan(0,0,200);
 
                 var payload = JsonConvert.SerializeObject(companies);
 
                 var response = client.PutAsync(_apiconnectionstring + _updateCompanieURL,
                     new StringContent(payload, Encoding.UTF8, "application/json")).Result;
+
+                
+                
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -214,6 +243,8 @@ namespace Inn2PowerDataStreamUpdater.Services
             try
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+                //Extends the time before the request is canceled.
+                client.Timeout = new TimeSpan(0, 0, 200);
 
                 var payload = JsonConvert.SerializeObject(companies);
 

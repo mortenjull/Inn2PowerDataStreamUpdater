@@ -100,10 +100,13 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 company.Country = item.country;
                 company.Website = item.website;                
                 company.SME = item.sme_status;
+
                 var roleresult = ConvertSupplyChainRoles(item.supply_chain_roles, SupplyChainroles);
                 var categoryresult = ConvertSupplyChainCategories(item.supply_chain_categories, SuppleChainCategories);
-                company.SupplyChainCategory = categoryresult;
-                company.SupplyChainRole = roleresult;
+                if(roleresult == null)
+                    Console.WriteLine();
+                company.SupplyChainCategories = categoryresult;
+                company.SupplyChainRoles = roleresult;
 
                 if (!item.offices.Any())
                 {
@@ -121,8 +124,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     company.Created = DateTime.Now;                   
                 }                
                 convertedCompanies.Add(company);
-            }
-
+            }           
             return convertedCompanies;
         }
 
@@ -152,7 +154,9 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 }
                 else
                 {
-                    return null;
+                    //Role code string from streame api contains n/a.
+                    //If we want to handle anything regarding that.
+                    //Place the code here.
                 }
             }
             return convertedRoles;

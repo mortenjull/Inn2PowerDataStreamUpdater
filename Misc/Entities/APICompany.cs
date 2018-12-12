@@ -16,7 +16,7 @@ namespace Inn2PowerDataStreamUpdater.Misc
         public decimal Longitude { get; set; }
         public bool SME { get; set; }
         public DateTime Created { get; set; }
-        public List<SupplyChainCategory> SupplyChainCategory { get; set; }
-        public List<SupplyChainRole> SupplyChainRole { get; set; }
+        public List<SupplyChainCategory> SupplyChainCategories { get; set; }
+        public List<SupplyChainRole> SupplyChainRoles { get; set; }
     }
 }

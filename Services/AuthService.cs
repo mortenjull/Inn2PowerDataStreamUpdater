@@ -53,15 +53,24 @@ namespace Inn2PowerDataStreamUpdater
                     resultobject1.ErrorMessage = "Username or Password was wrong.";
                     return resultobject1;
                 }
+                else if (response.IsSuccessStatusCode == true)
+                {
+                    //returns if we logged in.
+                    var resultobject = new ResultObject();
+                    resultobject.IsSuccesFull = true;
+                    resultobject.Payload = response.Content.ReadAsStringAsync().Result;
+                    client.Dispose();
+                    return resultobject;
+                }
 
-                //returns if we logged in.
-                var resultobject = new ResultObject();
-                resultobject.IsSuccesFull = true;
-                resultobject.Payload = response.Content.ReadAsStringAsync().Result;
+                var badresultobject = new ResultObject();
+                badresultobject.IsSuccesFull = false;
+                badresultobject.ErrorMessage = "Something went wrong. Try again.";
+                return badresultobject;
 
                 client.Dispose();
 
-                return resultobject;
+                return badresultobject;
             }
             catch (Exception e)
             {
