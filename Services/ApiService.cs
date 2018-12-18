@@ -31,6 +31,7 @@ namespace Inn2PowerDataStreamUpdater.Services
             
             this._apiconnectionstring = apiconnectionstring;           
             this.client = new HttpClient();
+            this.client.Timeout = new TimeSpan(0, 0, 200);
         }
 
         public async Task<ResultObject> GetSupplyChainCategorys(string token)
@@ -179,9 +180,7 @@ namespace Inn2PowerDataStreamUpdater.Services
 
             try
             {               
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
-                //Extends the time before the request is canceled.
-                client.Timeout = new TimeSpan(0,0,200);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);                               
 
                 var payload = JsonConvert.SerializeObject(companies);
 
@@ -194,7 +193,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                     var badresultobject = new ResultObject();
                     badresultobject.IsSuccesFull = false;
                     badresultobject.ErrorMessage = "Something went wrong.";
-                    client.Dispose();
+                    
                     return badresultobject;
                 }
                 else
@@ -202,7 +201,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                     var succesResult = new ResultObject();
                     succesResult.IsSuccesFull = true;
                     succesResult.Payload = companies;
-                    client.Dispose();
+                    
                     return succesResult;
                 }                
             }
@@ -211,7 +210,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                 var badresultobject = new ResultObject();
                 badresultobject.IsSuccesFull = false;
                 badresultobject.ErrorMessage = "Something went wrong.";
-                client.Dispose();
+                
                 return badresultobject;
             }           
         }
@@ -243,9 +242,7 @@ namespace Inn2PowerDataStreamUpdater.Services
 
             try
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
-                //Extends the time before the request is canceled.
-                client.Timeout = new TimeSpan(0, 0, 200);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);                
 
                 var payload = JsonConvert.SerializeObject(companies);
 
@@ -257,14 +254,14 @@ namespace Inn2PowerDataStreamUpdater.Services
                 {
                     succesResult.IsSuccesFull = true;
                     succesResult.Payload = response;
-                    client.Dispose();
+                    
                     return succesResult;
                 }
                 else
                 {
                     badresultobject.IsSuccesFull = false;
                     badresultobject.ErrorMessage = "Something went wrong and not all comapnies got created.";
-                    client.Dispose();
+                    
                     return badresultobject;
                 }
 
@@ -273,7 +270,7 @@ namespace Inn2PowerDataStreamUpdater.Services
             {                
                 badresultobject.IsSuccesFull = false;
                 badresultobject.ErrorMessage = "Something went wrong.";
-                client.Dispose();
+                
                 return badresultobject;
             }            
         }

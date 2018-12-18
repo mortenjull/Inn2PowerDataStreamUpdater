@@ -62,8 +62,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
                     case "1":
                         resultobject = UpdateAndCreateCompanies();
                         break;
-                    case "2":
-                        
+                    case "2":                      
                         resultobject = CreateCompanies(this._newCompanies);
                         break;
                     case "3":
@@ -111,6 +110,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             return resultobject;
         }
         
+        
 
         /// <summary>
         /// Combines the update and create method herrein.
@@ -156,48 +156,23 @@ namespace Inn2PowerDataStreamUpdater.Menues
             {
                 succesresult.IsSuccesFull = true;
                 return succesresult;
+            }                            
+            var result = this._apiService.UpdateCompanies(this._token, existingCompanies).Result;
+
+            if (result.IsSuccesFull == true)
+            {                                       
+                succesresult.IsSuccesFull = true;
+                succesresult.Payload = result.Payload;
+                return succesresult;
             }
-            var done = false;
-            var tries = 0;
-            while (!done)
+            else
             {
-                if (tries == 1)
-                {
-                    done = true;
-                   
-                    badResult.IsSuccesFull = false;
-                    badResult.ErrorMessage = "Tries reached. Could not login.";
-                    return badResult;
-                }
-
-                var result = this._apiService.UpdateCompanies(this._token, existingCompanies).Result;
-                if (result.IsSuccesFull == true)
-                {
-                    done = true;
-                    
-                    succesresult.IsSuccesFull = true;
-                    succesresult.Payload = result.Payload;
-                    return succesresult;
-                }
-                else
-                {
-                    if (!ReLogin())
-                    {
-                        done = true;
-
-                        
-                        badResult.IsSuccesFull = false;
-                        badResult.ErrorMessage = "Could not login";
-                        return badResult;
-                    }
-
-                    tries++;
-                }
+                Console.WriteLine("Token expired. Please restart appliaktion.");
+                Console.ReadLine();
             }
-            //placed to saticfy return at all path condition eventhough unreachable
-
+                      
             badResult.IsSuccesFull = false;
-            badResult.ErrorMessage = "Unreachable is reached. This shuold not be posible";
+            badResult.ErrorMessage = "Token has expired. Restart Applikation.";
             return badResult;
         }
 
@@ -217,46 +192,21 @@ namespace Inn2PowerDataStreamUpdater.Menues
                 return succesresult;
             }
             
-            var done = false;
-            var tries = 0;
-            while (!done)
-            {
-                if (tries == 1)
-                {
-                    done = true;
-                
-                    badResult.IsSuccesFull = false;
-                    badResult.ErrorMessage = "Tries reached. Could not login.";
-                    return badResult;
-                }
-
-                var result = this._apiService.CreateCompanies(this._token, newCompanies).Result;
-                if (result.IsSuccesFull == true)
-                {
-                    done = true;
-
-                    succesresult.IsSuccesFull = true;
-                    succesresult.Payload = this._token;
-                    return succesresult;
-                }
-                else
-                {
-                    if (!ReLogin())
-                    {
-                        done = true;
-
-                        badResult.IsSuccesFull = false;
-                        badResult.ErrorMessage = "Could not login";
-                        return badResult;
-                    }
-
-                    tries++;
-                }
+            var result = this._apiService.CreateCompanies(this._token, newCompanies).Result;
+            if (result.IsSuccesFull == true)
+            {                    
+                succesresult.IsSuccesFull = true;
+                succesresult.Payload = this._token;
+                return succesresult;
             }
-            //placed to saticfy return at all path condition eventhough unreachable
-
+            else
+            {
+                Console.WriteLine("Token expired. Please restart appliaktion.");
+                Console.ReadLine();
+            }
+           
             badResult.IsSuccesFull = false;
-            badResult.ErrorMessage = "Unreachable is reached. This shuold not be posible";
+            badResult.ErrorMessage = "Token has expired. Restart Applikation.";
             return badResult;
         }
 

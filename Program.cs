@@ -56,11 +56,7 @@ namespace Inn2PowerDataStreamUpdater
 
             _dataStramCompanies = new List<DataStreamCompany>();
             _newCompanies = new List<APICompany>();
-            _existingCompanies = new List<APICompany>();
-
-            Console.WriteLine("Welcome to Inn2Power Datastream DB Updater!");            
-            Console.WriteLine("Press Enter to login.");
-            Console.ReadLine();
+            _existingCompanies = new List<APICompany>();            
 
             RunInitialMenues();
             RunMenues();
@@ -156,12 +152,7 @@ namespace Inn2PowerDataStreamUpdater
                 else
                 {
                     _dataStramCompanies = (List<DataStreamCompany>) result.Payload;
-
-                    Console.Clear();
-                    Console.WriteLine($"Wee have recieved {_dataStramCompanies.Count} items from the stream.");                    
                     _gotDataFromDataStream = true;
-                    Console.WriteLine("Press Enter to Continue.");
-                    Console.ReadLine();
                 }
             }            
         }
@@ -191,12 +182,7 @@ namespace Inn2PowerDataStreamUpdater
                     _apiCompanies = (List<APICompany>)result.Payload;
                     _supplyChainCategories = (List<SupplyChainCategory>) result2.Payload;
                     _supplyChainRoles = (List<SupplyChainRole>) result3.Payload;
-
-                    Console.Clear();
-                    Console.WriteLine($"Wee have recieved {_apiCompanies.Count} items from the API.");
                     _gotDataFromAPI = true;
-                    Console.WriteLine("Press Enter to Continue.");
-                    Console.ReadLine();
                 }
             }
         }
@@ -205,9 +191,7 @@ namespace Inn2PowerDataStreamUpdater
         /// Contains dialog and logic calls related to data preperation.
         /// </summary>
         static void InitialWorkMenu()
-        {
-            Console.Clear();
-            Console.WriteLine("Prepering data for Work.....");
+        {                    
             try
             {
                 var result = _logic.PrepareCompanies(_dataStramCompanies, _apiCompanies, _supplyChainRoles, _supplyChainCategories);
@@ -220,13 +204,7 @@ namespace Inn2PowerDataStreamUpdater
                 {
                     ListsSubResult subResult = (ListsSubResult) result.Payload;
                     _newCompanies = subResult.NewCompanies;
-                    _existingCompanies = subResult.ExistingCompanies;
-
-                    Console.Clear();
-                    Console.WriteLine($"There are NewCompanies: {_newCompanies.Count}");
-                    Console.WriteLine($"There are ExistingCompanies: {_existingCompanies.Count}");
-                    Console.WriteLine("Press Enter to continue.");
-                    Console.ReadLine();
+                    _existingCompanies = subResult.ExistingCompanies;                 
                 }
             }
             catch (Exception e)
