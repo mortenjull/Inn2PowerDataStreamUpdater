@@ -91,40 +91,52 @@ namespace Inn2PowerDataStreamUpdater.BLL
             )
         {
             var convertedCompanies = new List<APICompany>();
-
-            foreach (var item in streamCompanies)
-            {
-                var company = new APICompany();                
-
-                company.CompanyName = item.company_name;
-                company.Country = item.country;
-                company.Website = item.website;                
-                company.SME = item.sme_status;
-
-                var roleresult = ConvertSupplyChainRoles(item.supply_chain_roles, SupplyChainroles);
-                var categoryresult = ConvertSupplyChainCategories(item.supply_chain_categories, SuppleChainCategories);
-                if(roleresult == null)
-                    Console.WriteLine();
-                company.SupplyChainCategories = categoryresult;
-                company.SupplyChainRoles = roleresult;
-
-                if (!item.offices.Any())
+            
+                foreach (var item in streamCompanies)
                 {
-                    company.Address = "";
-                    company.Latitude = 0;
-                    company.Longitude = 0;
-                    company.Created = DateTime.Now;
+                    var company = new APICompany();
+
+                    company.CompanyName = item.company_name;
+                    company.Country = item.country;
+                    company.Website = item.website;
+                    company.SME = item.sme_status;
+
+                    var roleresult = ConvertSupplyChainRoles(item.supply_chain_roles, SupplyChainroles);
+                    var categoryresult = ConvertSupplyChainCategories(item.supply_chain_categories, SuppleChainCategories);
+                    company.SupplyChainCategories = categoryresult;
+                    company.SupplyChainRoles = roleresult;
+
+                    if (!item.offices.Any())
+                    {
+                        company.Address = "";
+                        company.Latitude = 0;
+                        company.Longitude = 0;
+                        company.Created = DateTime.Now;
+                    }
+                    else
+                    {
+                        //We are getting empty data this must be taken into consieration.
+                        try
+                        {
+                            var office = item.offices.ElementAt(0);
+                            company.Address = office.address;
+                            company.Latitude = Decimal.Parse(office.lat);
+                            company.Longitude = Decimal.Parse(office.lng);
+                            company.Created = DateTime.Now;
+                        }
+                        catch (Exception e)
+                        {
+                            company.Address = "";
+                        company.Latitude = 0;
+                        company.Longitude = 0;
+                        company.Created = DateTime.Now;
+                        }
+                        
+                    }
+                    convertedCompanies.Add(company);
                 }
-                else
-                {
-                    var office = item.offices.ElementAt(0);
-                    company.Address = office.address;
-                    company.Latitude = Decimal.Parse(office.lat);
-                    company.Longitude = Decimal.Parse(office.lng);
-                    company.Created = DateTime.Now;                   
-                }                
-                convertedCompanies.Add(company);
-            }           
+            
+                      
             return convertedCompanies;
         }
 

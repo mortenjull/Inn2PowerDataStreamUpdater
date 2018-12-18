@@ -187,8 +187,6 @@ namespace Inn2PowerDataStreamUpdater.Services
 
                 var response = client.PutAsync(_apiconnectionstring + _updateCompanieURL,
                     new StringContent(payload, Encoding.UTF8, "application/json")).Result;
-
-                
                 
 
                 if (!response.IsSuccessStatusCode)
@@ -196,6 +194,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                     var badresultobject = new ResultObject();
                     badresultobject.IsSuccesFull = false;
                     badresultobject.ErrorMessage = "Something went wrong.";
+                    client.Dispose();
                     return badresultobject;
                 }
                 else
@@ -203,6 +202,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                     var succesResult = new ResultObject();
                     succesResult.IsSuccesFull = true;
                     succesResult.Payload = companies;
+                    client.Dispose();
                     return succesResult;
                 }                
             }
@@ -211,6 +211,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                 var badresultobject = new ResultObject();
                 badresultobject.IsSuccesFull = false;
                 badresultobject.ErrorMessage = "Something went wrong.";
+                client.Dispose();
                 return badresultobject;
             }           
         }
@@ -250,17 +251,20 @@ namespace Inn2PowerDataStreamUpdater.Services
 
                 var response = client.PostAsync(_apiconnectionstring + _CreateCompanieURL,
                     new StringContent(payload, Encoding.UTF8, "application/json")).Result;
+                
 
                 if (response.IsSuccessStatusCode)
                 {
                     succesResult.IsSuccesFull = true;
                     succesResult.Payload = response;
+                    client.Dispose();
                     return succesResult;
                 }
                 else
                 {
                     badresultobject.IsSuccesFull = false;
                     badresultobject.ErrorMessage = "Something went wrong and not all comapnies got created.";
+                    client.Dispose();
                     return badresultobject;
                 }
 
@@ -269,6 +273,7 @@ namespace Inn2PowerDataStreamUpdater.Services
             {                
                 badresultobject.IsSuccesFull = false;
                 badresultobject.ErrorMessage = "Something went wrong.";
+                client.Dispose();
                 return badresultobject;
             }            
         }
