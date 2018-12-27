@@ -12,9 +12,14 @@ namespace Inn2PowerDataStreamUpdater.BLL
     {
         private ResultObject _badResult;
         private ResultObject _succesResult;
+
+        private List<string> ErrorCompanies;
         
         public Logic()
         {
+            //List containing companies with bad data
+            this.ErrorCompanies = new List<string>();
+
             this._badResult = new ResultObject();
             this._succesResult = new ResultObject();          
         }
@@ -101,7 +106,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     company.Website = item.website;
                     company.SME = item.sme_status;
 
-                    var roleresult = ConvertSupplyChainRoles(item.supply_chain_roles, SupplyChainroles);
+                    var roleresult = ConvertSupplyChainRoles(item.supply_chain_roles, SupplyChainroles, item);
                     var categoryresult = ConvertSupplyChainCategories(item.supply_chain_categories, SuppleChainCategories);
                     company.SupplyChainCategories = categoryresult;
                     company.SupplyChainRoles = roleresult;
@@ -124,25 +129,46 @@ namespace Inn2PowerDataStreamUpdater.BLL
                             company.Longitude = Decimal.Parse(office.lng);
                             company.Created = DateTime.Now;
                         }
+                        //Some how chars are present i longitude and we must consider that.
                         catch (Exception e)
                         {
                             company.Address = "";
-                        company.Latitude = 0;
-                        company.Longitude = 0;
-                        company.Created = DateTime.Now;
+                            company.Latitude = 0;
+                            company.Longitude = 0;
+                            company.Created = DateTime.Now;
+
+                            this.ErrorCompanies.Add($"Entry number: {item.entry_reference_number}: Error lat lng.");
                         }
                         
                     }
                     convertedCompanies.Add(company);
                 }
-            
-                      
+
+            {//Error list print.
+                Console.Clear();
+                foreach (var errorCompany in this.ErrorCompanies)
+                {
+                    Console.WriteLine(errorCompany);
+                }
+
+                Console.ReadLine();
+            }
+              
+
             return convertedCompanies;
         }
 
+        /// <summary>
+        /// DataStreamCompany is added for error logging.
+        /// </summary>
+        /// <param name="StreamChainStrings"></param>
+        /// <param name="SupplyChainRoles"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         private List<SupplyChainRole> ConvertSupplyChainRoles(
             List<string>StreamChainStrings, 
-            List<SupplyChainRole>SupplyChainRoles)
+            List<SupplyChainRole>SupplyChainRoles,
+            DataStreamCompany item)
         {
             if(StreamChainStrings == null || !StreamChainStrings.Any())
                 return new List<SupplyChainRole>();
@@ -166,6 +192,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 }
                 else
                 {
+                    this.ErrorCompanies.Add($"Entry number: {item.entry_reference_number}. Error SupplyChainRole. N/A object:");
                     //Role code string from streame api contains n/a.
                     //If we want to handle anything regarding that.
                     //Place the code here.
