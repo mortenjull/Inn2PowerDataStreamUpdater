@@ -99,6 +99,10 @@ namespace Inn2PowerDataStreamUpdater.BLL
             
                 foreach (var item in streamCompanies)
                 {
+                    //Skips the invalid item.
+                    if(!ValidateDataStreamCompany(item))
+                        continue;
+
                     var company = new APICompany();
 
                     company.CompanyName = item.company_name;
@@ -111,50 +115,14 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     company.SupplyChainCategories = categoryresult;
                     company.SupplyChainRoles = roleresult;
 
-                    if (!item.offices.Any())
-                    {
-                        company.Address = "";
-                        company.Latitude = 0;
-                        company.Longitude = 0;
+                    var office = item.offices.ElementAt(0);
+                        company.Address = office.address;
+                        company.Latitude = Decimal.Parse(office.lat);
+                        company.Longitude = Decimal.Parse(office.lng);
                         company.Created = DateTime.Now;
-                    }
-                    else
-                    {
-                        //We are getting empty data this must be taken into consieration.
-                        try
-                        {
-                            var office = item.offices.ElementAt(0);
-                            company.Address = office.address;
-                            company.Latitude = Decimal.Parse(office.lat);
-                            company.Longitude = Decimal.Parse(office.lng);
-                            company.Created = DateTime.Now;
-                        }
-                        //Some how chars are present i longitude and we must consider that.
-                        catch (Exception e)
-                        {
-                            company.Address = "";
-                            company.Latitude = 0;
-                            company.Longitude = 0;
-                            company.Created = DateTime.Now;
 
-                            this.ErrorCompanies.Add($"Entry number: {item.entry_reference_number}: Error lat lng.");
-                        }
-                        
-                    }
                     convertedCompanies.Add(company);
                 }
-
-            {//Error list print.
-                Console.Clear();
-                foreach (var errorCompany in this.ErrorCompanies)
-                {
-                    Console.WriteLine(errorCompany);
-                }
-
-                Console.ReadLine();
-            }
-              
-
             return convertedCompanies;
         }
 
@@ -194,8 +162,8 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 {
                     this.ErrorCompanies.Add($"Entry number: {item.entry_reference_number}. Error SupplyChainRole. N/A object:");
                     //Role code string from streame api contains n/a.
-                    //If we want to handle anything regarding that.
-                    //Place the code here.
+                    //This should be cout in The Validation method. But we will keep this just for good measueres.
+                    //We should never hit this.
                 }
             }
             return convertedRoles;
@@ -222,6 +190,52 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 }
             }
             return convertedCategories;
+        }
+
+        /// <summary>
+        /// Because of invalid data from datastream, we use this method to validate each element from the stream.
+        /// </summary>
+        /// <param name="company"></param>
+        /// <returns></returns>
+        private bool ValidateDataStreamCompany(DataStreamCompany company)
+        {
+            //Validates Offices lat, lng and Address.
+            if (company.offices == null)
+                return false;
+            if (!company.offices.Any())
+                return false;
+            else
+            {
+                var office = company.offices.ElementAt(0);
+                if (String.IsNullOrEmpty(office.lat) || String.IsNullOrWhiteSpace(office.lat)
+                                                     || String.IsNullOrEmpty(office.lng) || String.IsNullOrWhiteSpace(office.lng))
+                    return false;
+                if (String.IsNullOrEmpty(office.address) || String.IsNullOrWhiteSpace(office.address))
+                    return false;
+            }
+
+            //Validates Categories and Roles.
+            if (company.supply_chain_categories == null)
+                return false;
+            if (!company.supply_chain_categories.Any())
+                return false;
+            else
+            {
+                if (company.supply_chain_categories.Contains("n/a"))
+                    return false;
+            }
+            if (company.supply_chain_roles == null)
+                return false;
+            if (!company.supply_chain_roles.Any())
+                return false;
+            else
+            {
+                if (company.supply_chain_roles.Contains("n/a"))
+                    return false;
+            }
+
+            //Returns true if data is valid within the testet areas.
+            return true;
         }
        
     }
