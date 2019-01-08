@@ -35,7 +35,7 @@ namespace Inn2PowerDataStreamUpdater
         private static List<APICompany> _existingCompanies;
         private static List<APICompany> _companiesToUpdate;
 
-        private const string DATASTREAM_URL = "http://inn2power.eu/mapping/api/feed?key=0lUwFrGpTqfI9oSNISCUF7m5UYzWLtCU";
+        private const string DATASTREAM_URL = "";
         //private const string API_CONNECTIONSTRING = "http://api.mjapps.dk";
         private const string API_CONNECTIONSTRING = "https://localhost:44346";
 
