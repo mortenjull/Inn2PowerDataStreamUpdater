@@ -22,7 +22,7 @@ namespace Inn2PowerDataStreamUpdater.Services
         private readonly string _CreateCompanieURL = "/datastream/CreateCompanies";
 
         private readonly string _apiconnectionstring;       
-        private readonly HttpClient client;
+        
 
         public ApiService(string apiconnectionstring)
         {
@@ -30,7 +30,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                 throw new ArgumentNullException(nameof(apiconnectionstring));
             
             this._apiconnectionstring = apiconnectionstring;           
-            this.client = new HttpClient();
+            
         }
 
         public async Task<ResultObject> GetSupplyChainCategorys(string token)
@@ -44,26 +44,30 @@ namespace Inn2PowerDataStreamUpdater.Services
             }
             try
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
-
-                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getSupplyChaincategories)).Result;
-
-                if (response.IsSuccessStatusCode == false)
+                using (var client = new HttpClient())
                 {
-                    var badresultobject = new ResultObject();
-                    badresultobject.IsSuccesFull = false;
-                    badresultobject.ErrorMessage = "Something went wrong getting API companies.";
-                    return badresultobject;
-                }
+                    client.Timeout = new TimeSpan(0, 0, 200);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
 
-                var dataResult = response.Content.ReadAsStringAsync().Result;
+                    HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getSupplyChaincategories)).Result;
 
-                var result = JsonConvert.DeserializeObject<List<SupplyChainCategory>>(dataResult);
+                    if (response.IsSuccessStatusCode == false)
+                    {
+                        var badresultobject = new ResultObject();
+                        badresultobject.IsSuccesFull = false;
+                        badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                        return badresultobject;
+                    }
 
-                var resultobject = new ResultObject();
-                resultobject.IsSuccesFull = true;
-                resultobject.Payload = result;
-                return resultobject;
+                    var dataResult = response.Content.ReadAsStringAsync().Result;
+
+                    var result = JsonConvert.DeserializeObject<List<SupplyChainCategory>>(dataResult);
+
+                    var resultobject = new ResultObject();
+                    resultobject.IsSuccesFull = true;
+                    resultobject.Payload = result;
+                    return resultobject;
+                }              
             }
             catch (Exception e)
             {
@@ -86,26 +90,30 @@ namespace Inn2PowerDataStreamUpdater.Services
             }
             try
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
-
-                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getSupplyChainRoles)).Result;
-
-                if (response.IsSuccessStatusCode == false)
+                using (var client = new HttpClient())
                 {
-                    var badresultobject = new ResultObject();
-                    badresultobject.IsSuccesFull = false;
-                    badresultobject.ErrorMessage = "Something went wrong getting API companies.";
-                    return badresultobject;
-                }
+                    client.Timeout = new TimeSpan(0, 0, 200);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
 
-                var dataResult = response.Content.ReadAsStringAsync().Result;
+                    HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getSupplyChainRoles)).Result;
 
-                var result = JsonConvert.DeserializeObject<List<SupplyChainRole>>(dataResult);
+                    if (response.IsSuccessStatusCode == false)
+                    {
+                        var badresultobject = new ResultObject();
+                        badresultobject.IsSuccesFull = false;
+                        badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                        return badresultobject;
+                    }
 
-                var resultobject = new ResultObject();
-                resultobject.IsSuccesFull = true;
-                resultobject.Payload = result;
-                return resultobject;
+                    var dataResult = response.Content.ReadAsStringAsync().Result;
+
+                    var result = JsonConvert.DeserializeObject<List<SupplyChainRole>>(dataResult);
+
+                    var resultobject = new ResultObject();
+                    resultobject.IsSuccesFull = true;
+                    resultobject.Payload = result;
+                    return resultobject;
+                }                
             }
             catch (Exception e)
             {
@@ -129,26 +137,30 @@ namespace Inn2PowerDataStreamUpdater.Services
 
             try
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
-
-                HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getAllURL)).Result;
-
-                var dataResult = response.Content.ReadAsStringAsync().Result;
-
-                if (response.IsSuccessStatusCode == false)
+                using (var client = new HttpClient())
                 {
-                    var badresultobject = new ResultObject();
-                    badresultobject.IsSuccesFull = false;
-                    badresultobject.ErrorMessage = "Something went wrong getting API companies.";
-                    return badresultobject;
-                }
+                    client.Timeout = new TimeSpan(0, 0, 200);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
 
-                var result = JsonConvert.DeserializeObject<List<APICompany>>(dataResult);
+                    HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getAllURL)).Result;
 
-                var resultobject = new ResultObject();
-                resultobject.IsSuccesFull = true;
-                resultobject.Payload = result;
-                return resultobject;
+                    var dataResult = response.Content.ReadAsStringAsync().Result;
+
+                    if (response.IsSuccessStatusCode == false)
+                    {
+                        var badresultobject = new ResultObject();
+                        badresultobject.IsSuccesFull = false;
+                        badresultobject.ErrorMessage = "Something went wrong getting API companies.";
+                        return badresultobject;
+                    }
+
+                    var result = JsonConvert.DeserializeObject<List<APICompany>>(dataResult);
+
+                    var resultobject = new ResultObject();
+                    resultobject.IsSuccesFull = true;
+                    resultobject.Payload = result;
+                    return resultobject;
+                }                
             }
             catch (Exception e)
             {
@@ -178,40 +190,39 @@ namespace Inn2PowerDataStreamUpdater.Services
             }
 
             try
-            {               
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
-                //Extends the time before the request is canceled.
-                client.Timeout = new TimeSpan(0,0,200);
-
-                var payload = JsonConvert.SerializeObject(companies);
-
-                var response = client.PutAsync(_apiconnectionstring + _updateCompanieURL,
-                    new StringContent(payload, Encoding.UTF8, "application/json")).Result;
-                
-
-                if (!response.IsSuccessStatusCode)
+            {
+                using (var client = new HttpClient())
                 {
-                    var badresultobject = new ResultObject();
-                    badresultobject.IsSuccesFull = false;
-                    badresultobject.ErrorMessage = "Something went wrong.";
-                    client.Dispose();
-                    return badresultobject;
-                }
-                else
-                {
-                    var succesResult = new ResultObject();
-                    succesResult.IsSuccesFull = true;
-                    succesResult.Payload = companies;
-                    client.Dispose();
-                    return succesResult;
-                }                
+                    client.Timeout = new TimeSpan(0, 0, 200);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+
+                    var payload = JsonConvert.SerializeObject(companies);
+
+                    var response = client.PutAsync(_apiconnectionstring + _updateCompanieURL,
+                        new StringContent(payload, Encoding.UTF8, "application/json")).Result;
+
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var badresultobject = new ResultObject();
+                        badresultobject.IsSuccesFull = false;
+                        badresultobject.ErrorMessage = "Something went wrong.";
+                        return badresultobject;
+                    }
+                    else
+                    {
+                        var succesResult = new ResultObject();
+                        succesResult.IsSuccesFull = true;
+                        succesResult.Payload = companies;
+                        return succesResult;
+                    }
+                }                              
             }
             catch (Exception e)
             {
                 var badresultobject = new ResultObject();
                 badresultobject.IsSuccesFull = false;
-                badresultobject.ErrorMessage = "Something went wrong.";
-                client.Dispose();
+                badresultobject.ErrorMessage = "Something went wrong.";               
                 return badresultobject;
             }           
         }
@@ -243,37 +254,35 @@ namespace Inn2PowerDataStreamUpdater.Services
 
             try
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
-                //Extends the time before the request is canceled.
-                client.Timeout = new TimeSpan(0, 0, 200);
-
-                var payload = JsonConvert.SerializeObject(companies);
-
-                var response = client.PostAsync(_apiconnectionstring + _CreateCompanieURL,
-                    new StringContent(payload, Encoding.UTF8, "application/json")).Result;
-                
-
-                if (response.IsSuccessStatusCode)
+                using (var client = new HttpClient())
                 {
-                    succesResult.IsSuccesFull = true;
-                    succesResult.Payload = response;
-                    client.Dispose();
-                    return succesResult;
-                }
-                else
-                {
-                    badresultobject.IsSuccesFull = false;
-                    badresultobject.ErrorMessage = "Something went wrong and not all comapnies got created.";
-                    client.Dispose();
-                    return badresultobject;
-                }
+                    client.Timeout = new TimeSpan(0, 0, 200);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
 
+                    var payload = JsonConvert.SerializeObject(companies);
+
+                    var response = client.PostAsync(_apiconnectionstring + _CreateCompanieURL,
+                        new StringContent(payload, Encoding.UTF8, "application/json")).Result;
+
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        succesResult.IsSuccesFull = true;
+                        succesResult.Payload = response;
+                        return succesResult;
+                    }
+                    else
+                    {
+                        badresultobject.IsSuccesFull = false;
+                        badresultobject.ErrorMessage = "Something went wrong and not all comapnies got created.";
+                        return badresultobject;
+                    }
+                }              
             }
             catch (Exception e)
             {                
                 badresultobject.IsSuccesFull = false;
-                badresultobject.ErrorMessage = "Something went wrong.";
-                client.Dispose();
+                badresultobject.ErrorMessage = "Something went wrong.";                
                 return badresultobject;
             }            
         }
