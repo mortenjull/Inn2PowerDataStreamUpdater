@@ -26,10 +26,9 @@ namespace Inn2PowerDataStreamUpdater
         
         static void Main(string[] args)
         {
-            _autherService = new AuthService(API_CONNECTIONSTRING); 
-            _menu1 = new Menu1(API_CONNECTIONSTRING, BEARER_TOKEN, DATASTREAM_URL);
-            
-           BEARER_TOKEN = LoginMenu();
+            _autherService = new AuthService(API_CONNECTIONSTRING);
+            BEARER_TOKEN = LoginMenu();
+            _menu1 = new Menu1(API_CONNECTIONSTRING, BEARER_TOKEN, DATASTREAM_URL);                      
             _menu1.RunMenu1();
         }
               

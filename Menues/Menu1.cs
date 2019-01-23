@@ -29,7 +29,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             this._token = token;           
            
             this._apiService = new ApiService(this._apiConnectionString);
-            this._dataStreamService = new DataStreamService(this._apiConnectionString);
+            this._dataStreamService = new DataStreamService(this._datastreamUrl);
             this._logic = new Logic();
 
             this._newCompaniesFromStream = new List<APICompany>();
@@ -40,6 +40,10 @@ namespace Inn2PowerDataStreamUpdater.Menues
 
         public void RunMenu1()
         {
+            Console.Clear();
+            Console.WriteLine("Preparing Data....");
+            PrepData();
+
             Console.Clear();
             Console.WriteLine($"There are New Companies From Stream: {this._newCompaniesFromStream.Count}");
             Console.WriteLine($"There are, already existing in DB Companies From Stream: {this._companiesFromStreamAlreadyInDB.Count}");
