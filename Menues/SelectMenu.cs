@@ -144,6 +144,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
                 Console.WriteLine("             Longitude: " + item.Longitude);
                 Console.WriteLine("             Created: " + item.Created);
                 Console.WriteLine("             ReffNumber: " + item.CompanyDirectoryEntryReffNumber);
+                Console.WriteLine("             Status: " + item.Status);
                 index++;
             }
             Console.WriteLine("");
@@ -170,6 +171,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
                 Console.WriteLine("             Longitude: " + item.Longitude);
                 Console.WriteLine("             Created: " + item.Created);
                 Console.WriteLine("             ReffNumber: " + item.CompanyDirectoryEntryReffNumber);
+                Console.WriteLine("             Status: " + item.Status);
                 index++;
             }
             Console.WriteLine();

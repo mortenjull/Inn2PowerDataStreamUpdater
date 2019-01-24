@@ -19,5 +19,10 @@ namespace Inn2PowerDataStreamUpdater.Misc
         public List<SupplyChainCategory> SupplyChainCategories { get; set; }
         public List<SupplyChainRole> SupplyChainRoles { get; set; }
         public string CompanyDirectoryEntryReffNumber { get; set; }
+      
+        /// <summary>
+        /// This is not a part of the entity. This is for diplay purpose only.
+        /// </summary>
+        public string Status { get; set; }
     }
 }

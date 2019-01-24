@@ -64,7 +64,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         break;
 
                     }
-                    //If Reff Key have been set and i matches.
+                    //If Reff Key have been set and it matches.
                     if (apiCompany.CompanyDirectoryEntryReffNumber != null &&
                         apiCompany.CompanyDirectoryEntryReffNumber.Equals(convertedStreamCompany.CompanyDirectoryEntryReffNumber))
                     {
@@ -91,6 +91,100 @@ namespace Inn2PowerDataStreamUpdater.BLL
             this._succesResult.Payload = subResult;
             return this._succesResult;
         }
+        /// <summary>
+        /// This methods only purpase is to print out problematic companies.
+        /// </summary>
+        /// <param name="streamCompanies"></param>
+        private void PrintValues(List<DataStreamCompany> streamCompanies)
+        {
+            var ApprovedAll = new List<string>();
+
+            var Approved = new HashSet<string>();            
+            var PartnerAdded = new HashSet<string>();            
+
+            var ApprovedRejected = new List<string>();           
+            var PartnerAddedRejected = new List<string>();
+
+            var AddresMissing = new List<string>();
+           
+            foreach (var item in streamCompanies)
+            {                  
+                if (item.status.Equals("Approved"))
+                {
+                    ApprovedAll.Add($"Company: {item.company_name} ReffNumber: {item.entry_reference_number} Status: {item.status}");
+
+                    var key = "";
+                    try
+                    {
+                        key = (item.company_name + item.country + item.offices.ElementAt(0).address).Trim().ToLowerInvariant();
+                    }
+                    catch (Exception e)
+                    {
+                        AddresMissing.Add($"Company: {item.company_name} ReffNumber: {item.entry_reference_number} Status: {item.status}");
+                        continue;
+                    }
+
+                    var result = Approved.Add(key);
+
+                    if (result == false)
+                        ApprovedRejected.Add($"Company: {item.company_name} ReffNumber: {item.entry_reference_number} Status: {item.status}");
+                }
+                if (item.status.Equals("Partner Added"))
+                {
+                    var key = "";
+                    try
+                    {
+                        key = (item.company_name + item.country + item.offices.ElementAt(0).address).Trim().ToLowerInvariant();
+                    }
+                    catch (Exception e)
+                    {
+                        AddresMissing.Add($"Company: {item.company_name} ReffNumber: {item.entry_reference_number} Status: {item.status}");
+                        continue;
+                    }
+                    var result = PartnerAdded.Add(key);
+
+                    if (result == false)
+                        PartnerAddedRejected.Add($"Company: {item.company_name} ReffNumber: {item.entry_reference_number}");
+                }           
+            }            
+            {
+                Console.Clear();
+                Console.WriteLine(streamCompanies.Count + " :Stream");
+                Console.WriteLine("");
+                Console.WriteLine(ApprovedAll.Count + " :ApprovedAll");
+                Console.WriteLine(Approved.Count + " :Approved");
+                Console.WriteLine("");
+                Console.WriteLine(ApprovedRejected.Count + " :ApprovedRejected");
+                Console.WriteLine("");
+                Console.WriteLine(PartnerAdded.Count + " :PartnerAdded");
+                Console.WriteLine("");
+                Console.WriteLine(PartnerAddedRejected.Count + " :PartnerAddedRejecrted");                
+                Console.WriteLine("");               
+                Console.WriteLine(AddresMissing.Count + " :AddressMissing");
+
+                Console.WriteLine("");                
+                Console.WriteLine("Approved Rejected");
+                foreach (var item in ApprovedRejected)
+                {
+                    Console.WriteLine(item);
+                }
+                Console.WriteLine("");
+                Console.WriteLine("PartnerAdded Rejected");
+                foreach (var item in PartnerAddedRejected)
+                {
+                    Console.WriteLine(item);
+                }
+                Console.WriteLine("");
+                Console.WriteLine("Address Missing");
+                foreach (var item in AddresMissing)
+                {
+                    Console.WriteLine(item);
+                }
+
+
+                Console.ReadLine();
+            }
+        }
 
         /// <summary>
         /// Converts stream companies to API company format.
@@ -104,15 +198,17 @@ namespace Inn2PowerDataStreamUpdater.BLL
             )
         {
             var convertedCompanies = new List<APICompany>();
-            
-                foreach (var item in streamCompanies)
+            PrintValues(streamCompanies);
+
+            foreach (var item in streamCompanies)
                 {
+                                       
                     //Check the item status.
+                    if (!item.status.Equals("Approved") && !item.status.Equals("Partner Added"))
                     {
-                        if (item.status.Equals("Rejected") || item.status.Equals("Suspended") ||
-                            item.status.Equals("Pending"))
-                            break;
+                        continue;
                     }
+                   
                     var company = new APICompany();
                     //Special for Country.
                     {
@@ -125,6 +221,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     company.Website = item.website;
                     company.SME = item.sme_status;
                     company.CompanyDirectoryEntryReffNumber = item.entry_reference_number;
+                    company.Status = item.status;
 
                      
                     company.SupplyChainCategories = ConvertSupplyChainCategories(item.supply_chain_categories, SuppleChainCategories);
@@ -133,9 +230,10 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     if (item.offices.Any())
                     {
                         //We are getting empty data this must be taken into consieration.
+                        var office = item.offices.ElementAt(0);
                         try
                         {
-                            var office = item.offices.ElementAt(0);
+                            
                             company.Address = office.address;
                             company.Latitude = Decimal.Parse(office.lat);
                             company.Longitude = Decimal.Parse(office.lng);
@@ -143,7 +241,11 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         }
                         catch (Exception e)
                         {
-                            company.Address = "";
+                            //All must have Addres but coordinates is not importent.
+                            //Address is used in combined key later.
+                            if(String.IsNullOrWhiteSpace(office.address))
+                                continue;
+                            company.Address = office.address;
                             company.Latitude = 0;
                             company.Longitude = 0;
                             company.Created = DateTime.Now;
@@ -151,14 +253,18 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     }
                     else
                     {
-                        company.Address = "";
-                        company.Latitude = 0;
-                        company.Longitude = 0;
-                        company.Created = DateTime.Now;
+                        //company.Address = "";
+                        //company.Latitude = 0;
+                        //company.Longitude = 0;
+                        //company.Created = DateTime.Now;
+                        continue;
 
-                }
+                    }
                 convertedCompanies.Add(company);
-            }                                 
+            } 
+            
+            Console.WriteLine(convertedCompanies.Count + " :convertedCompanies");
+            Console.ReadLine();
             return convertedCompanies;
         }
 
