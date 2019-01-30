@@ -47,12 +47,12 @@ namespace Inn2PowerDataStreamUpdater.BLL
             var newCompanies = new List<APICompany>();
             foreach (var convertedStreamCompany in convertedStreamCompanies)
             {
-                var streamNameCountryKey = (convertedStreamCompany.CompanyName + convertedStreamCompany.Country + convertedStreamCompany.Address).Trim().ToLower();
+                var streamNameCountryKey = (convertedStreamCompany.CompanyName + convertedStreamCompany.Country).Trim().ToLower();
                 var added = false;
 
                 foreach (var apiCompany in apiCompanies)
                 {
-                    var apiNameCountryKey = (apiCompany.CompanyName + apiCompany.Country + apiCompany.Address).Trim().ToLower();
+                    var apiNameCountryKey = (apiCompany.CompanyName + apiCompany.Country).Trim().ToLower();
                     //Incase of first run and Reff Key is not yet set into DB.
                     if (apiCompany.CompanyDirectoryEntryReffNumber == null &&
                         streamNameCountryKey.Equals(apiNameCountryKey))
@@ -95,8 +95,10 @@ namespace Inn2PowerDataStreamUpdater.BLL
         /// This methods only purpase is to print out problematic companies.
         /// </summary>
         /// <param name="streamCompanies"></param>
-        private void PrintValues(List<DataStreamCompany> streamCompanies)
+        private List<DataStreamCompany> PrintValues(List<DataStreamCompany> streamCompanies)
         {
+            var FilteredList = new List<DataStreamCompany>();
+
             var ApprovedAll = new List<string>();
 
             var Approved = new HashSet<string>();            
@@ -104,6 +106,8 @@ namespace Inn2PowerDataStreamUpdater.BLL
 
             var ApprovedRejected = new List<string>();           
             var PartnerAddedRejected = new List<string>();
+
+            var AllRejected = new HashSet<string>();
 
             var AddresMissing = new List<string>();
            
@@ -116,7 +120,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     var key = "";
                     try
                     {
-                        key = (item.company_name + item.country + item.offices.ElementAt(0).address).Trim().ToLowerInvariant();
+                        key = (item.company_name + item.country).Trim().ToLowerInvariant();
                     }
                     catch (Exception e)
                     {
@@ -127,14 +131,21 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     var result = Approved.Add(key);
 
                     if (result == false)
+                    {
                         ApprovedRejected.Add($"Company: {item.company_name} ReffNumber: {item.entry_reference_number} Status: {item.status}");
+                        AllRejected.Add((item.company_name + item.country).Trim().ToLowerInvariant());
+                    }      
+                    else
+                    {
+                        FilteredList.Add(item);
+                    }
                 }
                 if (item.status.Equals("Partner Added"))
                 {
                     var key = "";
                     try
                     {
-                        key = (item.company_name + item.country + item.offices.ElementAt(0).address).Trim().ToLowerInvariant();
+                        key = (item.company_name + item.country).Trim().ToLowerInvariant();
                     }
                     catch (Exception e)
                     {
@@ -144,9 +155,22 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     var result = PartnerAdded.Add(key);
 
                     if (result == false)
+                    {
                         PartnerAddedRejected.Add($"Company: {item.company_name} ReffNumber: {item.entry_reference_number}");
+                        AllRejected.Add((item.company_name + item.country).Trim().ToLowerInvariant());
+                    }                        
+                    else
+                    {
+                        FilteredList.Add(item);
+                    }
                 }           
-            }            
+            }
+
+            foreach (var item in AllRejected)
+            {
+                var index = FilteredList.FindIndex(x => ((x.company_name + x.country).Trim().ToLowerInvariant()).Equals(item));
+                FilteredList.RemoveAt(index);
+            }
             {
                 Console.Clear();
                 Console.WriteLine(streamCompanies.Count + " :Stream");
@@ -154,8 +178,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 Console.WriteLine(ApprovedAll.Count + " :ApprovedAll");
                 Console.WriteLine(Approved.Count + " :Approved");
                 Console.WriteLine("");
-                Console.WriteLine(ApprovedRejected.Count + " :ApprovedRejected");
-                Console.WriteLine("");
+                Console.WriteLine(ApprovedRejected.Count + " :ApprovedRejected");               
                 Console.WriteLine(PartnerAdded.Count + " :PartnerAdded");
                 Console.WriteLine("");
                 Console.WriteLine(PartnerAddedRejected.Count + " :PartnerAddedRejecrted");                
@@ -181,8 +204,12 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     Console.WriteLine(item);
                 }
 
+                Console.WriteLine("");
+                Console.WriteLine("FilteredList no Duplicates and removed source Duplicate: " + FilteredList.Count);
 
                 Console.ReadLine();
+
+                return FilteredList;
             }
         }
 
@@ -198,9 +225,9 @@ namespace Inn2PowerDataStreamUpdater.BLL
             )
         {
             var convertedCompanies = new List<APICompany>();
-            PrintValues(streamCompanies);
+            var filteredStreamCompanies = PrintValues(streamCompanies);
 
-            foreach (var item in streamCompanies)
+            foreach (var item in filteredStreamCompanies)
                 {
                                        
                     //Check the item status.
@@ -240,11 +267,9 @@ namespace Inn2PowerDataStreamUpdater.BLL
                             company.Created = DateTime.Now;
                         }
                         catch (Exception e)
-                        {
-                            //All must have Addres but coordinates is not importent.
-                            //Address is used in combined key later.
-                            if(String.IsNullOrWhiteSpace(office.address))
-                                continue;
+                        {                            
+                            //if(String.IsNullOrWhiteSpace(office.address))
+                            //    continue;
                             company.Address = office.address;
                             company.Latitude = 0;
                             company.Longitude = 0;
@@ -253,12 +278,11 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     }
                     else
                     {
-                        //company.Address = "";
-                        //company.Latitude = 0;
-                        //company.Longitude = 0;
-                        //company.Created = DateTime.Now;
-                        continue;
-
+                        company.Address = "";
+                        company.Latitude = 0;
+                        company.Longitude = 0;
+                        company.Created = DateTime.Now;
+                        //continue;
                     }
                 convertedCompanies.Add(company);
             } 
