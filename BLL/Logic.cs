@@ -241,6 +241,8 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     {
                         if (item.country.Equals("Netherlands"))
                             item.country = "The Netherlands";
+                        if (item.country.Equals("UK"))
+                            item.country = "United Kingdom";
                     }
 
                     company.CompanyName = item.company_name;
