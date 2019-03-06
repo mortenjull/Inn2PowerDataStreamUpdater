@@ -47,7 +47,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                 using (var client = new HttpClient())
                 {
                     client.Timeout = new TimeSpan(0, 0, 200);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                     HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getSupplyChaincategories)).Result;
 
@@ -93,7 +93,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                 using (var client = new HttpClient())
                 {
                     client.Timeout = new TimeSpan(0, 0, 200);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                     HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getSupplyChainRoles)).Result;
 
@@ -140,7 +140,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                 using (var client = new HttpClient())
                 {
                     client.Timeout = new TimeSpan(0, 0, 200);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                     HttpResponseMessage response = client.GetAsync(new Uri(_apiconnectionstring + _getAllURL)).Result;
 
@@ -194,7 +194,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                 using (var client = new HttpClient())
                 {
                     client.Timeout = new TimeSpan(0, 0, 200);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                     var payload = JsonConvert.SerializeObject(companies);
 
@@ -257,7 +257,7 @@ namespace Inn2PowerDataStreamUpdater.Services
                 using (var client = new HttpClient())
                 {
                     client.Timeout = new TimeSpan(0, 0, 200);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                     var payload = JsonConvert.SerializeObject(companies);
 

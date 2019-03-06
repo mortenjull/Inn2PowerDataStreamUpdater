@@ -14,93 +14,32 @@ namespace Inn2PowerDataStreamUpdater
     class Program
     {
         //Services -----
-        private static AuthService _autherService;
-        private static DataStreamService _dataStreamService;
-        private static ApiService _apiService;
-
-        //BLL-----------
-        private static Logic _logic;
-
-        //Global Varibles -------
-        private static string _username;
-        private static string _password;
-        private static string _bearerToken;
-
-        private static List<DataStreamCompany> _dataStramCompanies;
-        private static List<APICompany> _apiCompanies;
-        private static List<SupplyChainCategory> _supplyChainCategories;
-        private static List<SupplyChainRole> _supplyChainRoles;
-
-        private static List<APICompany> _newCompanies;
-        private static List<APICompany> _existingCompanies;
-        private static List<APICompany> _companiesToUpdate;
-
+        private static AuthService _autherService;             
+        
         private const string DATASTREAM_URL = "";
         //private const string API_CONNECTIONSTRING = "http://api.mjapps.dk";
         private const string API_CONNECTIONSTRING = "https://localhost:44346";
-
-        //While loop toogles----
-        private static bool _loggedInd = false;
-        private static bool _gotDataFromDataStream = false;
-        private static bool _gotDataFromAPI = false;
-
+        private static string BEARER_TOKEN = "";
+       
         //Menues-----------
         private static Menu1 _menu1;
         
         static void Main(string[] args)
         {
             _autherService = new AuthService(API_CONNECTIONSTRING);
-            _dataStreamService = new DataStreamService(DATASTREAM_URL);
-            _apiService = new ApiService(API_CONNECTIONSTRING);
-            _logic = new Logic();
-
-            _dataStramCompanies = new List<DataStreamCompany>();
-            _newCompanies = new List<APICompany>();
-            _existingCompanies = new List<APICompany>();
-
-            Console.WriteLine("Welcome to Inn2Power Datastream DB Updater!");            
-            Console.WriteLine("Press Enter to login.");
-            Console.ReadLine();
-
-            RunInitialMenues();
-            RunMenues();
+            BEARER_TOKEN = LoginMenu();
+            _menu1 = new Menu1(API_CONNECTIONSTRING, BEARER_TOKEN, DATASTREAM_URL);                      
+            _menu1.RunMenu1();
         }
-
-        static void RunMenues()
-        {
-            _menu1 = new Menu1(
-                _newCompanies,
-                _existingCompanies, 
-                API_CONNECTIONSTRING,
-                _bearerToken, 
-                _username, 
-                _password);
-
-            var result =_menu1.RunMenu1();
-            _bearerToken = result.Payload.ToString();
-
-            //Signal temination, test code
-            {
-                Console.Clear();
-                Console.WriteLine("end of the line");
-                Console.ReadLine();
-            }
-        }
-
-        static void RunInitialMenues()
-        {
-            //Running IitialMenues.!
-            LoginMenu();
-            DataStreamMenu();
-            ApiMenu();
-            InitialWorkMenu();
-        }
-
+              
         /// <summary>
         /// Containing login related dialog and logic calls.
         /// </summary>
-        static void LoginMenu()
+        static string LoginMenu()
         {
+            bool _loggedInd = false;
+            var token = "";
+
             while (!_loggedInd)
             {
                 Console.Clear();
@@ -120,120 +59,17 @@ namespace Inn2PowerDataStreamUpdater
                     Console.ReadLine();
                 }
                 else
-                {
-                    //sets global variables
-                    _password = password;
-                    _username = username;
-                    _bearerToken = result.Payload.ToString();
+                {                    
 
                     Console.Clear();
                     Console.WriteLine("You are now logged in!!");
                     _loggedInd = true;
                     Console.WriteLine("Press any key to continue to menues.");
                     Console.ReadLine();
+                    token = result.Payload.ToString();
                 }
             }
-        }
-
-        /// <summary>
-        /// Containing DataStream related dialog and logic calls.
-        /// </summary>
-        static void DataStreamMenu()
-        {
-            while (!_gotDataFromDataStream)
-            {
-                Console.Clear();
-                Console.WriteLine("Getting Data from DataStream....");
-                var result = _dataStreamService.GetDataFromStream().Result;
-                if (!result.IsSuccesFull)
-                {
-                    Console.Clear();
-                    Console.WriteLine("We were unable to fetch Datastream data due to:");
-                    Console.WriteLine(result.ErrorMessage);
-                    Console.WriteLine("Press enter to try again.");
-                    Console.ReadLine();
-                }
-                else
-                {
-                    _dataStramCompanies = (List<DataStreamCompany>) result.Payload;
-
-                    Console.Clear();
-                    Console.WriteLine($"Wee have recieved {_dataStramCompanies.Count} items from the stream.");                    
-                    _gotDataFromDataStream = true;
-                    Console.WriteLine("Press Enter to Continue.");
-                    Console.ReadLine();
-                }
-            }            
-        }
-
-        /// <summary>
-        /// Containing Inn2POWER GetEverything realated dialog and logic calls.
-        /// </summary>
-        static void ApiMenu()
-        {
-            while (!_gotDataFromAPI)
-            {
-                Console.Clear();
-                Console.WriteLine("Getting Data from Inn2Power API....");
-                var result = _apiService.GetApiCompanies(_bearerToken).Result;
-                var result2 = _apiService.GetSupplyChainCategorys(_bearerToken).Result;
-                var result3 = _apiService.GetSupplyChainRoles(_bearerToken).Result;
-                if (!result.IsSuccesFull || !result2.IsSuccesFull || !result3.IsSuccesFull)
-                {
-                    Console.Clear();
-                    Console.WriteLine("We were unable to fetch Api data due to:");
-                    Console.WriteLine(result.ErrorMessage);
-                    Console.WriteLine("Press enter to try again.");
-                    Console.ReadLine();
-                }
-                else
-                {
-                    _apiCompanies = (List<APICompany>)result.Payload;
-                    _supplyChainCategories = (List<SupplyChainCategory>) result2.Payload;
-                    _supplyChainRoles = (List<SupplyChainRole>) result3.Payload;
-
-                    Console.Clear();
-                    Console.WriteLine($"Wee have recieved {_apiCompanies.Count} items from the API.");
-                    _gotDataFromAPI = true;
-                    Console.WriteLine("Press Enter to Continue.");
-                    Console.ReadLine();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Contains dialog and logic calls related to data preperation.
-        /// </summary>
-        static void InitialWorkMenu()
-        {
-            Console.Clear();
-            Console.WriteLine("Prepering data for Work.....");
-            try
-            {
-                var result = _logic.PrepareCompanies(_dataStramCompanies, _apiCompanies, _supplyChainRoles, _supplyChainCategories);
-                if (result.IsSuccesFull == false)
-                {
-                    Console.Clear();
-                    Console.WriteLine(result.ErrorMessage);
-                }
-                else
-                {
-                    ListsSubResult subResult = (ListsSubResult) result.Payload;
-                    _newCompanies = subResult.NewCompanies;
-                    _existingCompanies = subResult.ExistingCompanies;
-
-                    Console.Clear();
-                    Console.WriteLine($"There are NewCompanies: {_newCompanies.Count}");
-                    Console.WriteLine($"There are ExistingCompanies: {_existingCompanies.Count}");
-                    Console.WriteLine("Press Enter to continue.");
-                    Console.ReadLine();
-                }
-            }
-            catch (Exception e)
-            {
-                Console.Clear();
-                Console.WriteLine("Something went wrong in (logic.PrepareCompanies). Please restart applikation.");
-            }
-        }
+            return token;
+        }       
     }
 }

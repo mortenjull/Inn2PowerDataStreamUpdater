@@ -108,19 +108,16 @@ namespace Inn2PowerDataStreamUpdater.Menues
         {
             foreach (var index in indexes)
             {
-                if(index <= this._companies.Count && index >= 0)
-                    this._selectedCompanies.Add(this._companies.ElementAt(index));               
+                if(index <= (this._companies.Count -1) && index >= 0)
+                    this._selectedCompanies.Add(this._companies.ElementAt(index));
+                                
             }
 
             foreach (var selectedCompany in _selectedCompanies)
-            {
-                var key = selectedCompany.CompanyName + selectedCompany.Country;
-
+            {               
                 for (int i = 0; i < this._companies.Count; i++)
-                {
-                    var companykey = this._companies.ElementAt(i).CompanyName + this._companies.ElementAt(i).Country;
-
-                    if (key.Equals(companykey))
+                {                    
+                    if (selectedCompany.CompanyDirectoryEntryReffNumber.Equals(_companies.ElementAt(i).CompanyDirectoryEntryReffNumber))
                     {
                         this._companies.RemoveAt(i);
                     }
@@ -146,6 +143,8 @@ namespace Inn2PowerDataStreamUpdater.Menues
                 Console.WriteLine("             Latitude: " + item.Latitude);
                 Console.WriteLine("             Longitude: " + item.Longitude);
                 Console.WriteLine("             Created: " + item.Created);
+                Console.WriteLine("             ReffNumber: " + item.CompanyDirectoryEntryReffNumber);
+                Console.WriteLine("             Status: " + item.Status);
                 index++;
             }
             Console.WriteLine("");
@@ -171,6 +170,8 @@ namespace Inn2PowerDataStreamUpdater.Menues
                 Console.WriteLine("             Latitude: " + item.Latitude);
                 Console.WriteLine("             Longitude: " + item.Longitude);
                 Console.WriteLine("             Created: " + item.Created);
+                Console.WriteLine("             ReffNumber: " + item.CompanyDirectoryEntryReffNumber);
+                Console.WriteLine("             Status: " + item.Status);
                 index++;
             }
             Console.WriteLine();
