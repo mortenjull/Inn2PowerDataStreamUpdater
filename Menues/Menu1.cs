@@ -14,6 +14,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
         private readonly ApiService _apiService;
         private readonly DataStreamService _dataStreamService;
         private readonly Logic _logic;
+        private readonly Filters _filters;
 
         private readonly string _apiConnectionString;
         private readonly string _datastreamUrl;
@@ -31,6 +32,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             this._apiService = new ApiService(this._apiConnectionString);
             this._dataStreamService = new DataStreamService(this._datastreamUrl);
             this._logic = new Logic();
+            this._filters = new Filters();
 
             this._newCompaniesFromStream = new List<APICompany>();
             this._companiesFromStreamAlreadyInDB = new List<APICompany>();
@@ -103,7 +105,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             if (dataStreamResult.IsSuccesFull && apiCompanyResult.IsSuccesFull && categoriesResult.IsSuccesFull &&
                 roleResult.IsSuccesFull)
             {
-                var prepResult = this._logic.PrepareCompanies(
+                var prepResult = this._filters.PrepareCompanies(
                                                             (List<DataStreamCompany>) dataStreamResult.Payload,
                                                             (List<APICompany>) apiCompanyResult.Payload,
                                                             (List<SupplyChainRole>) roleResult.Payload,
