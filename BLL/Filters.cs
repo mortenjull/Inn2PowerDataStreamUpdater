@@ -12,13 +12,13 @@ namespace Inn2PowerDataStreamUpdater.BLL
         private ResultObject _badResult;
         private ResultObject _succesResult;
         private List<APICompany> _potentialDuplicates;
-        private List<DataStreamCompany> _datastreamPotentialDuplicates;
+        private List<PotentialDiplicate> _datastreamPotentialDuplicates;
         public Filters()
         {
             this._badResult = new ResultObject();
             this._succesResult = new ResultObject();
             this._potentialDuplicates = new List<APICompany>();
-            this._datastreamPotentialDuplicates = new List<DataStreamCompany>();
+            this._datastreamPotentialDuplicates = new List<PotentialDiplicate>();
         }
 
 
@@ -71,6 +71,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
             foreach (var item in dataStreamCompanies)
             {
                 var match = false;
+                var matchItem = new DataStreamCompany();
                 //Check the item status. Skips the item if its not one of theses two.
                 if (!item.status.Equals("Approved") && !item.status.Equals("Partner Added"))
                 {
@@ -79,6 +80,8 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 //Filteres potential duplicated from datastreamcompanies via comparing it to itself.
                 foreach (var x in dataStreamCompanies)
                 {
+                    if(item.entry_reference_number.Equals(x.entry_reference_number))
+                        continue;
                     //if countries match wee will go to next step
                     if (MatchCountries(x.country).Equals(MatchCountries(item.country)))
                     {
@@ -89,6 +92,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         if (xname.Contains(itemname))
                         {
                             match = true;
+                            matchItem = x;
                             break;
                         }
                         else
@@ -104,7 +108,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 if (match == false)
                     reducedDatastreamCompanies.Add(item);
                 else
-                    this._datastreamPotentialDuplicates.Add(item);
+                    this._datastreamPotentialDuplicates.Add(new PotentialDiplicate(item, matchItem, null));
             }          
             //filteres portential duplicates away by comparing the reduced list with companies from the API.
             //If y has Reff key. It origins from datasteam and we add it to filtered it because its difinitive the same and we might want to update it.
@@ -112,6 +116,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
             reducedDatastreamCompanies.ForEach(x =>
             {
                 var match = false;
+                var matchItem = new APICompany();
                 foreach (var y in apiCompanies)
                 {
                     if (y.CompanyDirectoryEntryReffNumber == null || y.CompanyDirectoryEntryReffNumber.Equals(""))
@@ -126,6 +131,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                             if (xname.Contains(yname))
                             {
                                 match = true;
+                                matchItem = y;
                                 break;
                             }
                             else
@@ -146,7 +152,7 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 if (match == false)
                     filteredDataStreamCompanies.Add(x);
                 else
-                    this._datastreamPotentialDuplicates.Add(x);
+                    this._datastreamPotentialDuplicates.Add(new PotentialDiplicate(x, null, matchItem));
             });
 
             return filteredDataStreamCompanies;
