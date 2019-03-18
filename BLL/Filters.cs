@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Inn2PowerDataStreamUpdater.Misc;
 using Inn2PowerDataStreamUpdater.Misc.Entities;
+using NPOI.HSSF.UserModel;
+using NPOI.OpenXmlFormats.Dml.WordProcessing;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 
 namespace Inn2PowerDataStreamUpdater.BLL
 {
@@ -48,6 +53,8 @@ namespace Inn2PowerDataStreamUpdater.BLL
 
             this._succesResult.IsSuccesFull = true;
             this._succesResult.Payload = subResult;
+
+            PrintDuplicates();
 
             return this._succesResult;
         }
@@ -153,9 +160,73 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     filteredDataStreamCompanies.Add(x);
                 else
                     this._datastreamPotentialDuplicates.Add(new PotentialDiplicate(x, null, matchItem));
-            });
-
+            });        
             return filteredDataStreamCompanies;
+        }
+
+        private void PrintDuplicates()
+        {
+            if (!this._datastreamPotentialDuplicates.Any())
+            {
+                return;
+            }
+
+            var date = "";
+            date = DateTime.Now.ToString();
+            var x = date.Replace("/", "-");
+            var y = x.Replace(":", "-");
+            string fileName = "duplicatesReport(" + y + ").xlsx";
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);                     
+            using (var fs = new FileStream(Path.Combine(path, fileName), FileMode.Create, FileAccess.Write))
+            {
+                IWorkbook workbook = new XSSFWorkbook();
+
+                ISheet excelSheet = workbook.CreateSheet("duplicatesReport");
+                IRow row = excelSheet.CreateRow(0);
+
+                row.CreateCell(0).SetCellValue("PotentialDuplicate: Name");
+                row.CreateCell(1).SetCellValue("PotentialDuplicate: Country");
+                row.CreateCell(2).SetCellValue("PotentialDuplicate: ReffKey");
+                row.CreateCell(3).SetCellValue("DataStream Match: Name");
+                row.CreateCell(4).SetCellValue("DataStream Match: Country");
+                row.CreateCell(5).SetCellValue("DataStream Match: ReffKey");
+                row.CreateCell(6).SetCellValue("ApiData Match: Name");
+                row.CreateCell(7).SetCellValue("ApiData Match: Country");
+                row.CreateCell(8).SetCellValue("ApiData Match: ID");
+
+                for (int i = 0; i < this._datastreamPotentialDuplicates.Count; i++)
+                {
+                    var item = this._datastreamPotentialDuplicates[i];
+                    if (item.Match2 == null)
+                    {
+                        row = excelSheet.CreateRow(i + 1);
+                        row.CreateCell(0).SetCellValue(item.Duplicate.company_name);
+                        row.CreateCell(1).SetCellValue(MatchCountries(item.Duplicate.country));
+                        row.CreateCell(2).SetCellValue(item.Duplicate.entry_reference_number);
+                        row.CreateCell(3).SetCellValue(item.Match.company_name);
+                        row.CreateCell(4).SetCellValue(MatchCountries(item.Match.country));
+                        row.CreateCell(5).SetCellValue(item.Match.entry_reference_number);
+                        row.CreateCell(6).SetCellValue("Null");
+                        row.CreateCell(7).SetCellValue("Null");
+                        row.CreateCell(8).SetCellValue("Null");
+
+                    }
+                    else
+                    {
+                        row = excelSheet.CreateRow(i + 1);
+                        row.CreateCell(0).SetCellValue(item.Duplicate.company_name);
+                        row.CreateCell(1).SetCellValue(MatchCountries(item.Duplicate.country));
+                        row.CreateCell(2).SetCellValue(item.Duplicate.entry_reference_number);
+                        row.CreateCell(3).SetCellValue("Null");
+                        row.CreateCell(4).SetCellValue("Null");
+                        row.CreateCell(5).SetCellValue("Null");
+                        row.CreateCell(6).SetCellValue(item.Match2.CompanyName);
+                        row.CreateCell(7).SetCellValue(item.Match2.Country);
+                        row.CreateCell(8).SetCellValue(item.Match2.Id);
+                    }
+                }               
+                workbook.Write(fs);
+            }
         }
 
         private List<APICompany> ConvertToApiCompany(
