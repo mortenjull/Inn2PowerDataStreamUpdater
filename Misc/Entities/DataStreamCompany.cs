@@ -15,6 +15,7 @@ namespace Inn2PowerDataStreamUpdater.Misc
         public List<string> supply_chain_categories { get; set; }
         public string website { get; set; }
         public bool sme_status { get; set; }
+        public Updated last_updated { get; set; }
         public List<Office> offices { get; set; }
     }
 
