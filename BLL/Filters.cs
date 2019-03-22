@@ -54,7 +54,8 @@ namespace Inn2PowerDataStreamUpdater.BLL
             this._succesResult.IsSuccesFull = true;
             this._succesResult.Payload = subResult;
 
-            PrintDuplicates();
+            PrintDuplicates("DuplicatesWithinDatasteam", 1);
+            PrintDuplicates("DuplicatesBetweenApiAndDatastream", 2);
 
             return this._succesResult;
         }
@@ -164,7 +165,15 @@ namespace Inn2PowerDataStreamUpdater.BLL
             return filteredDataStreamCompanies;
         }
 
-        private void PrintDuplicates()
+        /// <summary>
+        /// Creates an excel file containing potential duplicates.
+        /// Type defines one of TWO types.
+        /// Type 1: Duplicates within datastream companies.
+        /// Type 2: Duplicates between datastream and database.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="type"></param>
+        private void PrintDuplicates(string filename, int type)
         {
             if (!this._datastreamPotentialDuplicates.Any())
             {
@@ -175,13 +184,13 @@ namespace Inn2PowerDataStreamUpdater.BLL
             date = DateTime.Now.ToString();
             var x = date.Replace("/", "-");
             var y = x.Replace(":", "-");
-            string fileName = "duplicatesReport(" + y + ").xlsx";
+            string fileName = filename + "(" + y + ").xlsx";
             string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);                     
             using (var fs = new FileStream(Path.Combine(path, fileName), FileMode.Create, FileAccess.Write))
             {
                 IWorkbook workbook = new XSSFWorkbook();
 
-                ISheet excelSheet = workbook.CreateSheet("duplicatesReport");
+                ISheet excelSheet = workbook.CreateSheet(filename);
                 IRow row = excelSheet.CreateRow(0);
 
                 row.CreateCell(0).SetCellValue("PotentialDuplicate: Name");
@@ -194,12 +203,12 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 row.CreateCell(7).SetCellValue("ApiData Match: Country");
                 row.CreateCell(8).SetCellValue("ApiData Match: ID");
 
-                for (int i = 0; i < this._datastreamPotentialDuplicates.Count; i++)
-                {
-                    var item = this._datastreamPotentialDuplicates[i];
-                    if (item.Match2 == null)
+                int rownumber = 1;
+                foreach (var item in this._datastreamPotentialDuplicates)
+                {                    
+                    if (item.Match2 == null && type == 1)
                     {
-                        row = excelSheet.CreateRow(i + 1);
+                        row = excelSheet.CreateRow(rownumber);
                         row.CreateCell(0).SetCellValue(item.Duplicate.company_name);
                         row.CreateCell(1).SetCellValue(MatchCountries(item.Duplicate.country));
                         row.CreateCell(2).SetCellValue(item.Duplicate.entry_reference_number);
@@ -210,10 +219,11 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         row.CreateCell(7).SetCellValue("Null");
                         row.CreateCell(8).SetCellValue("Null");
 
+                        rownumber++;
                     }
-                    else
+                    if (item.Match == null && type == 2)
                     {
-                        row = excelSheet.CreateRow(i + 1);
+                        row = excelSheet.CreateRow(rownumber);
                         row.CreateCell(0).SetCellValue(item.Duplicate.company_name);
                         row.CreateCell(1).SetCellValue(MatchCountries(item.Duplicate.country));
                         row.CreateCell(2).SetCellValue(item.Duplicate.entry_reference_number);
@@ -223,8 +233,11 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         row.CreateCell(6).SetCellValue(item.Match2.CompanyName);
                         row.CreateCell(7).SetCellValue(item.Match2.Country);
                         row.CreateCell(8).SetCellValue(item.Match2.Id);
+
+                        rownumber++;
                     }
-                }               
+                }
+                 
                 workbook.Write(fs);
             }
         }
@@ -245,9 +258,10 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         item.country = "The Netherlands";
                     if (item.country.Equals("UK"))
                         item.country = "United Kingdom";
-                }
+                }                
                 company.CompanyName = item.company_name;
                 company.Country = item.country;
+                company.Created = Convert.ToDateTime(item.last_updated.date);
                 company.Website = item.website;
                 company.SME = item.sme_status;
                 company.CompanyDirectoryEntryReffNumber = item.entry_reference_number;
@@ -262,14 +276,14 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     company.Address = office.address ?? "";
                     company.Latitude = Decimal.Parse(office.lat ?? "0");
                     company.Longitude = Decimal.Parse(office.lng ?? "0");
-                    company.Created = DateTime.Now;
+                    //company.Created = DateTime.Now;
                 }
                 else
                 {
                     company.Address = "";
                     company.Latitude = 0;
                     company.Longitude = 0;
-                    company.Created = DateTime.Now;                   
+                    //company.Created = DateTime.Now;                   
                 }
 
                 ApiCompanies.Add(company);
@@ -291,9 +305,18 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         continue;
                     if (x.CompanyDirectoryEntryReffNumber.Equals(y.CompanyDirectoryEntryReffNumber))
                     {
-                        existingCompanies.Add(x);
-                        match = true;;
-                        break;
+                        if (0 < (DateTime.Compare(x.Created, y.Created)))
+                        {
+                            x.Id = y.Id;
+                            existingCompanies.Add(x);
+                            match = true;
+                            break;
+                        }
+                        else
+                        {
+                            match = true;
+                            break;
+                        }                    
                     }                       
                 }
                 if(match == false)
