@@ -8,5 +8,6 @@ namespace Inn2PowerDataStreamUpdater.Misc
     {
         public List<APICompany> NewCompanies { get; set; }
         public List<APICompany> ExistingCompanies { get; set; }
+        public List<APICompany> CompaniesGettingReffKey { get; set; }
     }
 }

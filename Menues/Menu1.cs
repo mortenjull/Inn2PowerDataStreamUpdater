@@ -22,6 +22,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
 
         private List<APICompany> _newCompaniesFromStream;
         private List<APICompany> _companiesFromStreamAlreadyInDB;
+        private List<APICompany> _ExactHashMatches;
               
         public Menu1(string apiconnectionstring, string token, string datastreamURL)
         {            
@@ -36,6 +37,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
 
             this._newCompaniesFromStream = new List<APICompany>();
             this._companiesFromStreamAlreadyInDB = new List<APICompany>();
+            this._ExactHashMatches = new List<APICompany>();
 
 
         }
@@ -79,6 +81,9 @@ namespace Inn2PowerDataStreamUpdater.Menues
                         this._companiesFromStreamAlreadyInDB = result2.Companies;
                         UpdateCompanies((List<APICompany>) result2.SelectedCompanies);
                         break;
+                    case "6":
+                        UpdateCompanies(this._ExactHashMatches);
+                        break;
                     case "e":
                         done = true;
                         break;
@@ -116,6 +121,8 @@ namespace Inn2PowerDataStreamUpdater.Menues
                     var result = (ListsSubResult)prepResult.Payload;
                     this._newCompaniesFromStream = result.NewCompanies;
                     this._companiesFromStreamAlreadyInDB = result.ExistingCompanies;
+                    this._ExactHashMatches = result.CompaniesGettingReffKey;
+
                 }
                 else
                 {
@@ -171,7 +178,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
                 return false;
             }            
 
-            var result = this._apiService.UpdateCompanies(this._token, existingCompanies).Result;
+            var result = this._apiService.UpdateCompanies(this._token, existingCompanies).Result;            
             if (result.IsSuccesFull == true)
             {
                 Console.WriteLine("Companies have been Updated. Press Enter:");
@@ -184,6 +191,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
                 Console.ReadLine();
                 return false;
             }
+           
         }            
         
 
@@ -224,6 +232,7 @@ namespace Inn2PowerDataStreamUpdater.Menues
             Console.Clear();
             Console.WriteLine($"New Companies: {this._newCompaniesFromStream.Count}");
             Console.WriteLine($"ExistingCompanies: {this._companiesFromStreamAlreadyInDB.Count}");
+            Console.WriteLine($"There are: {this._ExactHashMatches.Count} Exact hashvalue matches.");
             Console.WriteLine("");
             Console.WriteLine("Select an option by typen its NUMBER.");
             Console.WriteLine("");
@@ -236,6 +245,8 @@ namespace Inn2PowerDataStreamUpdater.Menues
             Console.WriteLine("( 4 ): Manuel select CREATE companies.");
             Console.WriteLine("");
             Console.WriteLine("( 5 ): Manuel select UPDATE companies.");
+            Console.WriteLine("");
+            Console.WriteLine("( 6 ): Update ExactHash Match companies.");
             Console.WriteLine("");
             Console.WriteLine("( E ): Type E to Exit. Wont execute ANY options to DB.");
             Console.WriteLine("");            

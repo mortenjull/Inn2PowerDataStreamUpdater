@@ -18,12 +18,14 @@ namespace Inn2PowerDataStreamUpdater.BLL
         private ResultObject _succesResult;
         private List<APICompany> _potentialDuplicates;
         private List<PotentialDiplicate> _datastreamPotentialDuplicates;
+        private List<APICompany> _exactHashMatch;
         public Filters()
         {
             this._badResult = new ResultObject();
             this._succesResult = new ResultObject();
             this._potentialDuplicates = new List<APICompany>();
             this._datastreamPotentialDuplicates = new List<PotentialDiplicate>();
+            this._exactHashMatch = new List<APICompany>();
         }
 
 
@@ -52,10 +54,12 @@ namespace Inn2PowerDataStreamUpdater.BLL
             var subResult = SortCompaniesByNewAndExisting(convertedStreamCompanies, apiCompanies);
 
             this._succesResult.IsSuccesFull = true;
+            subResult.CompaniesGettingReffKey = this._exactHashMatch;
             this._succesResult.Payload = subResult;
 
             PrintDuplicates("DuplicatesWithinDatasteam", 1);
             PrintDuplicates("DuplicatesBetweenApiAndDatastream", 2);
+            PrintExactHashMatch("ExacthashMathes");
 
             return this._succesResult;
         }
@@ -123,15 +127,31 @@ namespace Inn2PowerDataStreamUpdater.BLL
             //If y has no reff key and x does not appear in apiCompanies we add it to reduced
             reducedDatastreamCompanies.ForEach(x =>
             {
+                var xHash = StreamGenereateHashValue(x);
                 var match = false;
+                var skip = false;
                 var matchItem = new APICompany();
                 foreach (var y in apiCompanies)
                 {
                     if (y.CompanyDirectoryEntryReffNumber == null || y.CompanyDirectoryEntryReffNumber.Equals(""))
                     {
+                        if (x.company_name.ToLowerInvariant() == y.CompanyName.ToLowerInvariant())
+                        {
+                            var hit = true;
+                        }
+                        //checks for exact match
+                        var yHash = APIGenereateHashValue(y);
+                        if (xHash == yHash)
+                        {
+                            y.CompanyDirectoryEntryReffNumber = x.entry_reference_number;
+                            this._exactHashMatch.Add(y);
+                            skip = true;
+                            break;
+                        }
+
                         //if countries match wee will go to next step
                         if (MatchCountries(x.country).Equals(MatchCountries(y.Country)))
-                        {
+                        {                          
                             //If name is IN ANY WAY contined within another company we consider it a potential duplicate.
                             //If true, Item is added to reduced and potentialduplicates.
                             var xname = x.company_name.Trim().ToLowerInvariant();
@@ -156,11 +176,15 @@ namespace Inn2PowerDataStreamUpdater.BLL
                     {
                         match = false;
                     }
-                }               
-                if (match == false)
-                    filteredDataStreamCompanies.Add(x);
-                else
-                    this._datastreamPotentialDuplicates.Add(new PotentialDiplicate(x, null, matchItem));
+                }
+
+                if (!skip)//we skip this if we have an exact math on hash value.
+                {
+                    if (match == false)
+                        filteredDataStreamCompanies.Add(x);
+                    else
+                        this._datastreamPotentialDuplicates.Add(new PotentialDiplicate(x, null, matchItem));
+                }                
             });        
             return filteredDataStreamCompanies;
         }
@@ -193,15 +217,18 @@ namespace Inn2PowerDataStreamUpdater.BLL
                 ISheet excelSheet = workbook.CreateSheet(filename);
                 IRow row = excelSheet.CreateRow(0);
 
-                row.CreateCell(0).SetCellValue("PotentialDuplicate: Name");
-                row.CreateCell(1).SetCellValue("PotentialDuplicate: Country");
-                row.CreateCell(2).SetCellValue("PotentialDuplicate: ReffKey");
-                row.CreateCell(3).SetCellValue("DataStream Match: Name");
-                row.CreateCell(4).SetCellValue("DataStream Match: Country");
-                row.CreateCell(5).SetCellValue("DataStream Match: ReffKey");
-                row.CreateCell(6).SetCellValue("ApiData Match: Name");
-                row.CreateCell(7).SetCellValue("ApiData Match: Country");
-                row.CreateCell(8).SetCellValue("ApiData Match: ID");
+                row.CreateCell(0).SetCellValue("CompanyDirectory: Name");
+                row.CreateCell(1).SetCellValue("CompanyDirectory: Country");
+                row.CreateCell(2).SetCellValue("CompanyDirectory: ReffKey");
+                row.CreateCell(3).SetCellValue("CompanyDirectory: Address");
+                row.CreateCell(4).SetCellValue("CompanyDirectory Match: Name");
+                row.CreateCell(5).SetCellValue("CompanyDirectory Match: Country");
+                row.CreateCell(6).SetCellValue("CompanyDirectory Match: ReffKey");
+                row.CreateCell(7).SetCellValue("CompanyDirectory Match: Address");
+                row.CreateCell(8).SetCellValue("NetWorking Tool Match: Name");
+                row.CreateCell(9).SetCellValue("NetWorking Tool Match: Country");
+                row.CreateCell(10).SetCellValue("NetWorking Tool Match: ID");
+                row.CreateCell(11).SetCellValue("NetWorking Tool Match: Address");
 
                 int rownumber = 1;
                 foreach (var item in this._datastreamPotentialDuplicates)
@@ -212,12 +239,22 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         row.CreateCell(0).SetCellValue(item.Duplicate.company_name);
                         row.CreateCell(1).SetCellValue(MatchCountries(item.Duplicate.country));
                         row.CreateCell(2).SetCellValue(item.Duplicate.entry_reference_number);
-                        row.CreateCell(3).SetCellValue(item.Match.company_name);
-                        row.CreateCell(4).SetCellValue(MatchCountries(item.Match.country));
-                        row.CreateCell(5).SetCellValue(item.Match.entry_reference_number);
-                        row.CreateCell(6).SetCellValue("Null");
-                        row.CreateCell(7).SetCellValue("Null");
+                        var address = "Empty";
+                        if (item.Duplicate.offices != null && item.Duplicate.offices.Any())
+                            address = item.Duplicate.offices[0].address ?? "Empty";
+                        row.CreateCell(3).SetCellValue(address);
+
+                        row.CreateCell(4).SetCellValue(item.Match.company_name);
+                        row.CreateCell(5).SetCellValue(MatchCountries(item.Match.country));
+                        row.CreateCell(6).SetCellValue(item.Match.entry_reference_number);
+                        if (item.Match.offices != null && item.Match.offices.Any())
+                            address = item.Match.offices[0].address ?? "Empty";
+                        row.CreateCell(7).SetCellValue(address);
+
                         row.CreateCell(8).SetCellValue("Null");
+                        row.CreateCell(9).SetCellValue("Null");
+                        row.CreateCell(10).SetCellValue("Null");
+                        row.CreateCell(11).SetCellValue("Null");
 
                         rownumber++;
                     }
@@ -227,17 +264,70 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         row.CreateCell(0).SetCellValue(item.Duplicate.company_name);
                         row.CreateCell(1).SetCellValue(MatchCountries(item.Duplicate.country));
                         row.CreateCell(2).SetCellValue(item.Duplicate.entry_reference_number);
-                        row.CreateCell(3).SetCellValue("Null");
+                        var address = "Empty";
+                        if (item.Duplicate.offices != null && item.Duplicate.offices.Any())
+                            address = item.Duplicate.offices[0].address ?? "Empty";
+                        row.CreateCell(3).SetCellValue(address);
+
                         row.CreateCell(4).SetCellValue("Null");
                         row.CreateCell(5).SetCellValue("Null");
-                        row.CreateCell(6).SetCellValue(item.Match2.CompanyName);
-                        row.CreateCell(7).SetCellValue(item.Match2.Country);
-                        row.CreateCell(8).SetCellValue(item.Match2.Id);
+                        row.CreateCell(6).SetCellValue("Null");
+                        row.CreateCell(7).SetCellValue("Null");
+
+                        row.CreateCell(8).SetCellValue(item.Match2.CompanyName);
+                        row.CreateCell(9).SetCellValue(item.Match2.Country);
+                        row.CreateCell(10).SetCellValue(item.Match2.Id);
+                        row.CreateCell(11).SetCellValue(item.Match2.Address ?? "Empty");
 
                         rownumber++;
                     }
                 }
                  
+                workbook.Write(fs);
+            }
+        }
+
+
+        private void PrintExactHashMatch(string filename)
+        {
+            if (!this._exactHashMatch.Any())
+            {
+                return;
+            }
+
+            var date = "";
+            date = DateTime.Now.ToString();
+            var x = date.Replace("/", "-");
+            var y = x.Replace(":", "-");
+            string fileName = filename + "(" + y + ").xlsx";
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            using (var fs = new FileStream(Path.Combine(path, fileName), FileMode.Create, FileAccess.Write))
+            {
+                IWorkbook workbook = new XSSFWorkbook();
+
+                ISheet excelSheet = workbook.CreateSheet(filename);
+                IRow row = excelSheet.CreateRow(0);
+
+                row.CreateCell(0).SetCellValue("Exactmatch: Name");
+                row.CreateCell(1).SetCellValue("Exactmatch: Country");
+                row.CreateCell(2).SetCellValue("Exactmatch: ReffKey");
+                row.CreateCell(3).SetCellValue("Exactmatch: Address");
+                row.CreateCell(4).SetCellValue("Exactmatch: Id");
+
+                int rownumber = 1;
+                foreach (var item in this._exactHashMatch)
+                {
+                   
+                    row = excelSheet.CreateRow(rownumber);
+                    row.CreateCell(0).SetCellValue(item.CompanyName);
+                    row.CreateCell(1).SetCellValue(MatchCountries(item.Country));
+                    row.CreateCell(2).SetCellValue(item.CompanyDirectoryEntryReffNumber);
+                    row.CreateCell(3).SetCellValue(item.Address ?? "Empty");
+                    row.CreateCell(4).SetCellValue(item.Id.ToString());
+
+                    rownumber++;                   
+                }
+
                 workbook.Write(fs);
             }
         }
@@ -295,14 +385,16 @@ namespace Inn2PowerDataStreamUpdater.BLL
         private ListsSubResult SortCompaniesByNewAndExisting(List<APICompany> listToSort, List<APICompany> listToCompareWith)
         {
             var newCompanies = new List<APICompany>();
-            var existingCompanies = new List<APICompany>();
+            var existingCompanies = new List<APICompany>();         
             listToSort.ForEach(x =>
-            {
+            {                
                 var match = false;
                 foreach (var y in listToCompareWith)
-                {
-                    if(String.IsNullOrWhiteSpace(y.CompanyDirectoryEntryReffNumber))
+                {                   
+                    if (String.IsNullOrWhiteSpace(y.CompanyDirectoryEntryReffNumber))
+                    {                                                
                         continue;
+                    }
                     if (x.CompanyDirectoryEntryReffNumber.Equals(y.CompanyDirectoryEntryReffNumber))
                     {
                         if (0 < (DateTime.Compare(x.Created, y.Created)))
@@ -314,6 +406,9 @@ namespace Inn2PowerDataStreamUpdater.BLL
                         }
                         else
                         {
+                            //We sets match to true so we wont add it to new companies.
+                            //The reason is: X is older and we dont want older data overiding new data.
+                            //We therefore skip it completely.
                             match = true;
                             break;
                         }                    
@@ -324,8 +419,66 @@ namespace Inn2PowerDataStreamUpdater.BLL
             });
             var subResult = new ListsSubResult();
             subResult.ExistingCompanies = existingCompanies;
-            subResult.NewCompanies = newCompanies;
+            subResult.NewCompanies = newCompanies;            
             return subResult;
+        }
+        private int StreamGenereateHashValue(DataStreamCompany company)
+        {
+            var companyName = company.company_name;
+            var country = MatchCountries(company.country);
+            var website = company.website ?? " ";
+            var address = "";
+            if (company.offices != null && company.offices.Any())
+                address = company.offices[0].address ?? "";
+            var sme = company.sme_status.ToString();
+            var categories = "";
+            foreach (var item in company.supply_chain_categories)
+            {
+                categories = categories + item.Split(".")[1];
+            }
+            var roles = "";
+            foreach (var item in company.supply_chain_roles)
+            {
+                roles = roles + item;
+            }
+
+            var totalString = "";
+            totalString = companyName + country + website + address + sme + categories + roles;
+            var trimmedAndLowerInvariant = totalString.Trim().ToLowerInvariant();
+            var spaceRemoved = trimmedAndLowerInvariant.Replace(" ", "");
+
+            int hashValue = spaceRemoved.GetHashCode();
+
+            return hashValue;
+        }
+
+        private int APIGenereateHashValue(APICompany company)
+        {          
+            var companyName = company.CompanyName;
+            var country = company.Country;
+            var website = company.Website ?? " ";
+            var address = company.Address ?? " ";
+            var sme = company.SME.ToString();
+            var categories = "";
+            foreach (var item in company.SupplyChainCategories)
+            {
+                string code = item.SupplyChainCategoryCode.ToString().Split(".")[0];
+                categories = categories + code.Replace(item.SuperCategory.ToString(), "");
+            }       
+            var roles = "";
+            foreach (var item in company.SupplyChainRoles)
+            {               
+                roles = roles + item.SupplyChainRoleCode.ToString();
+            }
+
+            var totalString = "";
+            totalString = companyName + country + website + address + sme + categories + roles;
+            var trimmedAndLowerInvariant = totalString.Trim().ToLowerInvariant();
+            var spaceRemoved = trimmedAndLowerInvariant.Replace(" ", "");
+
+            int hashValue = spaceRemoved.GetHashCode();
+
+            return hashValue;
         }
 
         /// <summary>

@@ -17,8 +17,8 @@ namespace Inn2PowerDataStreamUpdater
         private static AuthService _autherService;             
         
         private const string DATASTREAM_URL = "http://inn2power.eu/mapping/api/feed?key=0lUwFrGpTqfI9oSNISCUF7m5UYzWLtCU";
-        //private const string API_CONNECTIONSTRING = "http://api.mjapps.dk";
-        private const string API_CONNECTIONSTRING = "https://localhost:44346";
+        private const string API_CONNECTIONSTRING = "http://api.mjapps.dk";
+        //private const string API_CONNECTIONSTRING = "https://localhost:44346";
         private static string BEARER_TOKEN = "";
        
         //Menues-----------
